@@ -1,0 +1,24 @@
+services:
+  pytorch:
+    container_name: pytorch-container
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
