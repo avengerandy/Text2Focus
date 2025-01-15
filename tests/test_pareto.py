@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from src.pareto import Solution, DynamicRowMatrix
+from src.pareto import Solution, DynamicRowMatrix, ParetoFront
 
 class TestSolution(unittest.TestCase):
 
@@ -87,6 +87,67 @@ class TestDynamicRowMatrix(unittest.TestCase):
         invalid_row = np.array([1.0, 2.0])
         with self.assertRaises(ValueError):
             self.matrix.add_row(invalid_row)
+
+
+class TestParetoFront(unittest.TestCase):
+
+    def setUp(self):
+        self.pareto_front = ParetoFront(solution_dimensions=2)
+
+    def test_add_solution(self):
+        solution_1 = Solution(np.array([1, 2], dtype=np.float64))
+        solution_2 = Solution(np.array([2, 1], dtype=np.float64))
+
+        self.pareto_front.add_solution(solution_1)
+        self.pareto_front.add_solution(solution_2)
+
+        pareto_solutions = self.pareto_front.get_pareto_solutions()
+        self.assertEqual(len(pareto_solutions), 2)
+
+    def test_get_pareto_solutions(self):
+        solution_1 = Solution(np.array([1, 2], dtype=np.float64))
+        solution_2 = Solution(np.array([2, 1], dtype=np.float64))
+        solution_3 = Solution(np.array([3, 1], dtype=np.float64))
+
+        self.pareto_front.add_solution(solution_1)
+        self.pareto_front.add_solution(solution_2)
+        self.pareto_front.add_solution(solution_3)
+
+        pareto_solutions = self.pareto_front.get_pareto_solutions()
+
+        self.assertEqual(len(pareto_solutions), 2)
+        self.assertTrue(any(np.array_equal(solution_1.get_values(), p.get_values()) for p in pareto_solutions))
+        self.assertTrue(any(np.array_equal(solution_3.get_values(), p.get_values()) for p in pareto_solutions))
+        self.assertFalse(any(np.array_equal(solution_2.get_values(), p.get_values()) for p in pareto_solutions))
+
+    def test_get_elbow_point(self):
+        solution_1 = Solution(np.array([1, 9], dtype=np.float64))
+        solution_2 = Solution(np.array([2, 8], dtype=np.float64))
+        solution_3 = Solution(np.array([4, 1], dtype=np.float64))
+        solution_4 = Solution(np.array([5, 2], dtype=np.float64))
+
+        self.pareto_front.add_solution(solution_1)
+        self.pareto_front.add_solution(solution_2)
+        self.pareto_front.add_solution(solution_3)
+        self.pareto_front.add_solution(solution_4)
+
+        elbow_point = self.pareto_front.get_elbow_point()
+        self.assertTrue(np.array_equal(solution_2.get_values(), elbow_point.get_values()))
+
+    def test_normalize_pareto(self):
+        solution_1 = Solution(np.array([1, 3], dtype=np.float64))
+        solution_2 = Solution(np.array([2, 2], dtype=np.float64))
+        solution_3 = Solution(np.array([5, 1], dtype=np.float64))
+
+        self.pareto_front.add_solution(solution_1)
+        self.pareto_front.add_solution(solution_2)
+        self.pareto_front.add_solution(solution_3)
+
+        normalized_pareto = self.pareto_front._normalize_pareto()
+
+        self.assertEqual(normalized_pareto.shape, (3, 2))
+        expected_result = np.array([[0.0, 1.0], [0.25, 0.5], [1.0, 0.0]], dtype=np.float64)
+        np.testing.assert_almost_equal(normalized_pareto, expected_result, decimal=6)
 
 
 if __name__ == '__main__':

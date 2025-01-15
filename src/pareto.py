@@ -1,4 +1,5 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 class Solution:
     def __init__(self, data: np.ndarray):
@@ -50,3 +51,82 @@ class DynamicRowMatrix:
         new_matrix[:self._size] = self._matrix
 
         self._matrix = new_matrix
+
+
+class IParetoFront(ABC):
+    @abstractmethod
+    def add_solution(self, solution: Solution):
+        pass
+
+    @abstractmethod
+    def get_pareto_solutions(self) -> list:
+        pass
+
+    @abstractmethod
+    def get_elbow_point(self) -> Solution:
+        pass
+
+    @abstractmethod
+    def _get_pareto(self) -> np.ndarray:
+        pass
+
+
+class ParetoFront(IParetoFront):
+    INITIAL_COLUMN_CAPACITY = 1000
+
+    def __init__(self, solution_dimensions: int):
+        self.matrix = DynamicRowMatrix(solution_dimensions, ParetoFront.INITIAL_COLUMN_CAPACITY)
+        self.pareto_front_mask = DynamicRowMatrix(1, ParetoFront.INITIAL_COLUMN_CAPACITY)
+
+    def add_solution(self, solution: Solution):
+        is_dominated = False
+
+        all_solutions_size = self.matrix.get_size()
+        for i in range(all_solutions_size):
+            if self.pareto_front_mask.get_data()[i][0] == 1:
+                existing_solution = Solution(self.matrix.get_data()[i])
+                if solution.is_dominated_by(existing_solution):
+                    is_dominated = True
+                    break
+
+        if not is_dominated:
+            self.matrix.add_row(solution.get_values())
+            self.pareto_front_mask.add_row([1])
+
+            for i in range(all_solutions_size):
+                if self.pareto_front_mask.get_data()[i][0] == 1:
+                    existing_solution = Solution(self.matrix.get_data()[i])
+                    if existing_solution.is_dominated_by(solution):
+                        self.pareto_front_mask.get_data()[i][0] = 0
+
+    def get_pareto_solutions(self) -> list[Solution]:
+        return [Solution(row) for row in self._get_pareto()]
+
+    def get_elbow_point(self) -> Solution:
+        pareto_values = self._normalize_pareto()
+
+        if len(pareto_values) == 1:
+            return Solution(self._get_pareto()[0])
+
+        diffs = np.diff(pareto_values, axis=0)
+        distances = np.linalg.norm(diffs, axis=1)
+        diffs_of_diffs = np.diff(distances)
+
+        max_change_index = np.argmax(diffs_of_diffs) + 1
+        best_elbow_point = self._get_pareto()[max_change_index]
+
+        return Solution(best_elbow_point)
+
+    def _normalize_pareto(self) -> np.ndarray:
+        pareto_front = self._get_pareto()
+        min_vals = np.min(pareto_front, axis=0)
+        max_vals = np.max(pareto_front, axis=0)
+        return (pareto_front - min_vals) / (max_vals - min_vals + 1e-8)
+
+    def _get_pareto(self) -> np.ndarray:
+        pareto_front = self.matrix.get_data()
+        pareto_mask = self.pareto_front_mask.get_data()
+
+        pareto_mask = np.squeeze(pareto_mask)
+
+        return pareto_front[pareto_mask == 1]
