@@ -67,6 +67,10 @@ class IParetoFront(ABC):
         pass
 
     @abstractmethod
+    def get_point_by_weight(self, weight: list[float]) -> Solution:
+        pass
+
+    @abstractmethod
     def _get_pareto(self) -> np.ndarray:
         pass
 
@@ -103,11 +107,10 @@ class ParetoFront(IParetoFront):
         return [Solution(row) for row in self._get_pareto()]
 
     def get_elbow_point(self) -> Solution:
-        pareto_values = self._normalize_pareto()
-
-        if len(pareto_values) == 1:
+        if len(self._get_pareto()) == 1:
             return Solution(self._get_pareto()[0])
 
+        pareto_values = self._normalize_pareto()
         diffs = np.diff(pareto_values, axis=0)
         distances = np.linalg.norm(diffs, axis=1)
         diffs_of_diffs = np.diff(distances)
@@ -116,6 +119,17 @@ class ParetoFront(IParetoFront):
         best_elbow_point = self._get_pareto()[max_change_index]
 
         return Solution(best_elbow_point)
+
+    def get_point_by_weight(self, weight: list[float]) -> Solution:
+        if len(self._get_pareto()) == 1:
+            return Solution(self._get_pareto()[0])
+
+        pareto_values = self._normalize_pareto()
+        pareto_values = pareto_values * weight
+        pareto_score = np.sum(pareto_values, axis=1)
+        max_index = np.argmax(pareto_score)
+
+        return Solution(self._get_pareto()[max_index])
 
     def _normalize_pareto(self) -> np.ndarray:
         pareto_front = self._get_pareto()

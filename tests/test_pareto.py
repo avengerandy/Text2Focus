@@ -121,10 +121,10 @@ class TestParetoFront(unittest.TestCase):
         self.assertFalse(any(np.array_equal(solution_2.get_values(), p.get_values()) for p in pareto_solutions))
 
     def test_get_elbow_point(self):
-        solution_1 = Solution(np.array([1, 9], dtype=np.float64))
-        solution_2 = Solution(np.array([2, 8], dtype=np.float64))
-        solution_3 = Solution(np.array([4, 1], dtype=np.float64))
-        solution_4 = Solution(np.array([5, 2], dtype=np.float64))
+        solution_1 = Solution(np.array([10, 9], dtype=np.float64))
+        solution_2 = Solution(np.array([20, 8], dtype=np.float64))
+        solution_3 = Solution(np.array([40, 1], dtype=np.float64))
+        solution_4 = Solution(np.array([50, 2], dtype=np.float64))
 
         self.pareto_front.add_solution(solution_1)
         self.pareto_front.add_solution(solution_2)
@@ -134,7 +134,7 @@ class TestParetoFront(unittest.TestCase):
         elbow_point = self.pareto_front.get_elbow_point()
         self.assertTrue(np.array_equal(solution_2.get_values(), elbow_point.get_values()))
 
-    def test_normalize_pareto(self):
+    def test_get_point_by_weight(self):
         solution_1 = Solution(np.array([1, 3], dtype=np.float64))
         solution_2 = Solution(np.array([2, 2], dtype=np.float64))
         solution_3 = Solution(np.array([5, 1], dtype=np.float64))
@@ -143,12 +143,13 @@ class TestParetoFront(unittest.TestCase):
         self.pareto_front.add_solution(solution_2)
         self.pareto_front.add_solution(solution_3)
 
-        normalized_pareto = self.pareto_front._normalize_pareto()
+        weight = [0.5, 0.5]
+        point = self.pareto_front.get_point_by_weight(weight)
+        self.assertTrue(np.array_equal(solution_3.get_values(), point.get_values()))
 
-        self.assertEqual(normalized_pareto.shape, (3, 2))
-        expected_result = np.array([[0.0, 1.0], [0.25, 0.5], [1.0, 0.0]], dtype=np.float64)
-        np.testing.assert_almost_equal(normalized_pareto, expected_result, decimal=6)
-
+        weight = [0.1, 0.9]
+        point = self.pareto_front.get_point_by_weight(weight)
+        self.assertTrue(np.array_equal(solution_1.get_values(), point.get_values()))
 
 if __name__ == '__main__':
     unittest.main()
