@@ -5,9 +5,9 @@ from src.pareto import Solution, DynamicRowMatrix, ParetoFront
 class TestSolution(unittest.TestCase):
 
     def test_is_dominated_by(self):
-        sol1 = Solution(np.array([1, 2, 3]))
-        sol2 = Solution(np.array([3, 2, 1]))
-        sol3 = Solution(np.array([3, 4, 5]))
+        sol1 = Solution(np.array([1, 2, 3]), metadata="metadata1")
+        sol2 = Solution(np.array([3, 2, 1]), metadata="metadata2")
+        sol3 = Solution(np.array([3, 4, 5]), metadata="metadata3")
 
         self.assertEqual(sol1.is_dominated_by(sol2), np.bool_(False))
         self.assertEqual(sol2.is_dominated_by(sol1), np.bool_(False))
@@ -17,26 +17,30 @@ class TestSolution(unittest.TestCase):
         self.assertEqual(sol3.is_dominated_by(sol2), np.bool_(False))
 
     def test_get_values(self):
-        sol = Solution(np.array([1, 2, 3]))
+        sol = Solution(np.array([1, 2, 3]), metadata="metadata1")
         self.assertTrue(np.array_equal(sol.get_values(), np.array([1, 2, 3])))
 
+    def test_get_metadata(self):
+        sol = Solution(np.array([1, 2, 3]), metadata="metadata1")
+        self.assertEqual(sol.get_metadata(), "metadata1")
+
     def test_repr(self):
-        sol = Solution(np.array([1, 2, 3]))
+        sol = Solution(np.array([1, 2, 3]), metadata="metadata1")
         self.assertEqual(repr(sol), "Solution([1 2 3])")
 
-        sol = Solution(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+        sol = Solution(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), metadata="metadata2")
         self.assertEqual(repr(sol), "Solution([1 2 3 4 5]...)")
 
     def test_edge_case_empty(self):
-        sol1 = Solution(np.array([]))
-        sol2 = Solution(np.array([]))
+        sol1 = Solution(np.array([]), metadata="metadata1")
+        sol2 = Solution(np.array([]), metadata="metadata2")
 
         self.assertFalse(sol1.is_dominated_by(sol2))
         self.assertFalse(sol2.is_dominated_by(sol1))
 
     def test_edge_case_single_element(self):
-        sol1 = Solution(np.array([1]))
-        sol2 = Solution(np.array([2]))
+        sol1 = Solution(np.array([1]), metadata="metadata1")
+        sol2 = Solution(np.array([2]), metadata="metadata2")
 
         self.assertTrue(sol1.is_dominated_by(sol2))
         self.assertFalse(sol2.is_dominated_by(sol1))
@@ -95,8 +99,8 @@ class TestParetoFront(unittest.TestCase):
         self.pareto_front = ParetoFront(solution_dimensions=2)
 
     def test_add_solution(self):
-        solution_1 = Solution(np.array([1, 2], dtype=np.float64))
-        solution_2 = Solution(np.array([2, 1], dtype=np.float64))
+        solution_1 = Solution(np.array([1, 2], dtype=np.float64), metadata="metadata1")
+        solution_2 = Solution(np.array([2, 1], dtype=np.float64), metadata="metadata2")
 
         self.pareto_front.add_solution(solution_1)
         self.pareto_front.add_solution(solution_2)
@@ -105,9 +109,9 @@ class TestParetoFront(unittest.TestCase):
         self.assertEqual(len(pareto_solutions), 2)
 
     def test_get_pareto_solutions(self):
-        solution_1 = Solution(np.array([1, 2], dtype=np.float64))
-        solution_2 = Solution(np.array([2, 1], dtype=np.float64))
-        solution_3 = Solution(np.array([3, 1], dtype=np.float64))
+        solution_1 = Solution(np.array([1, 2], dtype=np.float64), metadata="metadata1")
+        solution_2 = Solution(np.array([2, 1], dtype=np.float64), metadata="metadata2")
+        solution_3 = Solution(np.array([3, 1], dtype=np.float64), metadata="metadata3")
 
         self.pareto_front.add_solution(solution_1)
         self.pareto_front.add_solution(solution_2)
@@ -117,14 +121,17 @@ class TestParetoFront(unittest.TestCase):
 
         self.assertEqual(len(pareto_solutions), 2)
         self.assertTrue(any(np.array_equal(solution_1.get_values(), p.get_values()) for p in pareto_solutions))
+        self.assertIn(solution_1.get_metadata(), [p.get_metadata() for p in pareto_solutions])
         self.assertTrue(any(np.array_equal(solution_3.get_values(), p.get_values()) for p in pareto_solutions))
+        self.assertIn(solution_3.get_metadata(), [p.get_metadata() for p in pareto_solutions])
         self.assertFalse(any(np.array_equal(solution_2.get_values(), p.get_values()) for p in pareto_solutions))
+        self.assertNotIn(solution_2.get_metadata(), [p.get_metadata() for p in pareto_solutions])
 
     def test_get_elbow_point(self):
-        solution_1 = Solution(np.array([10, 9], dtype=np.float64))
-        solution_2 = Solution(np.array([20, 8], dtype=np.float64))
-        solution_3 = Solution(np.array([40, 1], dtype=np.float64))
-        solution_4 = Solution(np.array([50, 2], dtype=np.float64))
+        solution_1 = Solution(np.array([10, 9], dtype=np.float64), metadata="metadata1")
+        solution_2 = Solution(np.array([20, 8], dtype=np.float64), metadata="metadata2")
+        solution_3 = Solution(np.array([40, 1], dtype=np.float64), metadata="metadata3")
+        solution_4 = Solution(np.array([50, 2], dtype=np.float64), metadata="metadata4")
 
         self.pareto_front.add_solution(solution_1)
         self.pareto_front.add_solution(solution_2)
@@ -133,11 +140,12 @@ class TestParetoFront(unittest.TestCase):
 
         elbow_point = self.pareto_front.get_elbow_point()
         self.assertTrue(np.array_equal(solution_2.get_values(), elbow_point.get_values()))
+        self.assertEqual(elbow_point.get_metadata(), "metadata2")
 
     def test_get_point_by_weight(self):
-        solution_1 = Solution(np.array([1, 3], dtype=np.float64))
-        solution_2 = Solution(np.array([2, 2], dtype=np.float64))
-        solution_3 = Solution(np.array([5, 1], dtype=np.float64))
+        solution_1 = Solution(np.array([1, 3], dtype=np.float64), metadata="metadata1")
+        solution_2 = Solution(np.array([2, 2], dtype=np.float64), metadata="metadata2")
+        solution_3 = Solution(np.array([5, 1], dtype=np.float64), metadata="metadata3")
 
         self.pareto_front.add_solution(solution_1)
         self.pareto_front.add_solution(solution_2)
@@ -146,10 +154,13 @@ class TestParetoFront(unittest.TestCase):
         weight = [0.5, 0.5]
         point = self.pareto_front.get_point_by_weight(weight)
         self.assertTrue(np.array_equal(solution_3.get_values(), point.get_values()))
+        self.assertEqual(point.get_metadata(), "metadata3")
 
         weight = [0.1, 0.9]
         point = self.pareto_front.get_point_by_weight(weight)
         self.assertTrue(np.array_equal(solution_1.get_values(), point.get_values()))
+        self.assertEqual(point.get_metadata(), "metadata1")
+
 
 if __name__ == '__main__':
     unittest.main()
