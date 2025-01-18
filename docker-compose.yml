@@ -22,3 +22,27 @@ services:
       - .:/app
     stdin_open: true
     tty: true
+
+  pyramid:
+    container_name: pyramid-container
+
+    build:
+      context: .
+      dockerfile: ./pyramid/Dockerfile
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./pyramid:/app/src
+    stdin_open: true
+    tty: true
