@@ -12,6 +12,4 @@ RUN git clone https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Netwo
 ENV PYTHONPATH="/app/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection:${PYTHONPATH}"
 
 WORKDIR /app/src
-
-# COPY pyramid/requirements.txt .
-# RUN pip install --requirement requirements.txt
+RUN pip install --no-cache-dir flask
