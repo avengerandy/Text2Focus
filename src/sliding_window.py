@@ -29,6 +29,15 @@ class Shape:
         self.width += max(increment.width, 1)
 
 
+@dataclass(frozen=True)
+class Window:
+    sub_array : np.ndarray
+    i : int
+    j : int
+    window_height : int
+    window_width : int
+
+
 class SlidingWindowScanner:
     def __init__(self, arr: np.ndarray, shape: Shape, stride: Stride):
         self.arr = arr
@@ -43,7 +52,7 @@ class SlidingWindowScanner:
         for i in range(0, height - window_height + 1, vertical_stride):
             for j in range(0, width - window_width + 1, horizontal_stride):
                 sub_array = self.arr[i:i + window_height, j:j + window_width]
-                yield sub_array
+                yield Window(sub_array=sub_array, i=i, j=j, window_height=window_height, window_width=window_width)
 
 
 class SlidingWindowProcessor:
