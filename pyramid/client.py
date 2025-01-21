@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import json
 
-API_URL = "http://127.0.0.1:5000/predict"
+API_URL = "http://127.0.0.1:8081/predict"
 IMAGE_PATH = "./example.jpg"
 OUTPUT_PATH = "./example_mask.jpg"
 

@@ -17,11 +17,13 @@ services:
       - PYTHONUNBUFFERED=1
 
     ports:
-      - "8000:8000"
+      - "8080:8080"
     volumes:
       - .:/app
     stdin_open: true
     tty: true
+    networks:
+      - main-network
 
   pyramid:
     container_name: pyramid-container
@@ -40,9 +42,13 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
-    ports:
-      - "8080:8080"
     volumes:
       - ./pyramid:/app/src
     stdin_open: true
     tty: true
+    networks:
+      - main-network
+
+networks:
+  main-network:
+    driver: bridge

@@ -7,3 +7,4 @@ temp/
 .coverage
 Pyramid/*.pth
 Pyramid/*.jpg
+src/*.jpg
