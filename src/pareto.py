@@ -118,7 +118,7 @@ class ParetoFront(IParetoFront):
 
     def get_elbow_point(self) -> Solution:
         if len(self._get_pareto()) == 1:
-            return Solution(self._get_pareto()[0])
+            return Solution(self._get_pareto()[0], self._metadatas[self._get_pareto_index()[0]])
 
         pareto_values = self._normalize_pareto()
         diffs = np.diff(pareto_values, axis=0)
@@ -134,7 +134,7 @@ class ParetoFront(IParetoFront):
 
     def get_point_by_weight(self, weight: list[float]) -> Solution:
         if len(self._get_pareto()) == 1:
-            return Solution(self._get_pareto()[0])
+            return Solution(self._get_pareto()[0], self._metadatas[self._get_pareto_index()[0]])
 
         pareto_values = self._normalize_pareto()
         pareto_values = pareto_values * weight
@@ -156,12 +156,17 @@ class ParetoFront(IParetoFront):
         pareto_front = self.matrix.get_data()
         pareto_mask = self.pareto_front_mask.get_data()
 
-        pareto_mask = np.squeeze(pareto_mask)
+        if pareto_mask.shape[0] == 1:
+            return pareto_front
 
+        pareto_mask = np.squeeze(pareto_mask)
         return pareto_front[pareto_mask == 1]
 
     def _get_pareto_index(self) -> np.ndarray:
         pareto_mask = self.pareto_front_mask.get_data()
-        pareto_mask = np.squeeze(pareto_mask)
 
+        if pareto_mask.shape[0] == 1:
+            return np.array([0])
+
+        pareto_mask = np.squeeze(pareto_mask)
         return np.where(pareto_mask == 1)[0]

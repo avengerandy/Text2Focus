@@ -128,12 +128,25 @@ class TestParetoFront(unittest.TestCase):
         self.assertNotIn(solution_2.get_metadata(), [p.get_metadata() for p in pareto_solutions])
 
     def test_get_elbow_point(self):
+        solution_0 = Solution(np.array([9, 8], dtype=np.float64), metadata="metadata0")
         solution_1 = Solution(np.array([10, 9], dtype=np.float64), metadata="metadata1")
         solution_2 = Solution(np.array([20, 8], dtype=np.float64), metadata="metadata2")
         solution_3 = Solution(np.array([40, 1], dtype=np.float64), metadata="metadata3")
         solution_4 = Solution(np.array([50, 2], dtype=np.float64), metadata="metadata4")
 
+        # one solution
+        self.pareto_front.add_solution(solution_0)
+        elbow_point = self.pareto_front.get_elbow_point()
+        self.assertTrue(np.array_equal(solution_0.get_values(), elbow_point.get_values()))
+        self.assertEqual(elbow_point.get_metadata(), "metadata0")
+
+        # one pareto solution
         self.pareto_front.add_solution(solution_1)
+        elbow_point = self.pareto_front.get_elbow_point()
+        self.assertTrue(np.array_equal(solution_1.get_values(), elbow_point.get_values()))
+        self.assertEqual(elbow_point.get_metadata(), "metadata1")
+
+        # multiple pareto solutions
         self.pareto_front.add_solution(solution_2)
         self.pareto_front.add_solution(solution_3)
         self.pareto_front.add_solution(solution_4)
@@ -143,11 +156,26 @@ class TestParetoFront(unittest.TestCase):
         self.assertEqual(elbow_point.get_metadata(), "metadata2")
 
     def test_get_point_by_weight(self):
+        solution_0 = Solution(np.array([0, 0], dtype=np.float64), metadata="metadata0")
         solution_1 = Solution(np.array([1, 3], dtype=np.float64), metadata="metadata1")
         solution_2 = Solution(np.array([2, 2], dtype=np.float64), metadata="metadata2")
         solution_3 = Solution(np.array([5, 1], dtype=np.float64), metadata="metadata3")
 
+        # one solution
+        self.pareto_front.add_solution(solution_0)
+        weight = [0.5, 0.5]
+        point = self.pareto_front.get_point_by_weight(weight)
+        self.assertTrue(np.array_equal(solution_0.get_values(), point.get_values()))
+        self.assertEqual(point.get_metadata(), "metadata0")
+
+        # one pareto solution
         self.pareto_front.add_solution(solution_1)
+        weight = [0.5, 0.5]
+        point = self.pareto_front.get_point_by_weight(weight)
+        self.assertTrue(np.array_equal(solution_1.get_values(), point.get_values()))
+        self.assertEqual(point.get_metadata(), "metadata1")
+
+        # multiple pareto solutions
         self.pareto_front.add_solution(solution_2)
         self.pareto_front.add_solution(solution_3)
 
