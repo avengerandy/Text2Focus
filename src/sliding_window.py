@@ -5,28 +5,28 @@ from typing import Generator
 
 @dataclass
 class Stride:
-    vertical: int
     horizontal: int
+    vertical: int
 
     def set_stride(self, vertical: int, horizontal: int):
-        self.vertical = max(vertical, 1)
         self.horizontal = max(horizontal, 1)
+        self.vertical = max(vertical, 1)
 
 
 @dataclass(frozen=True)
 class Increment:
-    height: int
     width: int
+    height: int
 
 
 @dataclass
 class Shape:
-    height: int
     width: int
+    height: int
 
     def expand(self, increment: Increment):
-        self.height += max(increment.height, 1)
         self.width += max(increment.width, 1)
+        self.height += max(increment.height, 1)
 
 
 @dataclass(frozen=True)
@@ -34,8 +34,8 @@ class Window:
     sub_array : np.ndarray
     i : int
     j : int
-    window_height : int
     window_width : int
+    window_height : int
 
 
 class SlidingWindowScanner:
@@ -46,13 +46,13 @@ class SlidingWindowScanner:
 
     def sliding_window_scan(self) -> Generator[np.ndarray, None, None]:
         height, width = self.arr.shape
-        window_height, window_width = self.shape.height, self.shape.width
-        vertical_stride, horizontal_stride = self.stride.vertical, self.stride.horizontal
+        window_width, window_height = self.shape.width, self.shape.height
+        horizontal_stride, vertical_stride = self.stride.horizontal, self.stride.vertical
 
-        for i in range(0, height - window_height + 1, vertical_stride):
-            for j in range(0, width - window_width + 1, horizontal_stride):
-                sub_array = self.arr[i:i + window_height, j:j + window_width]
-                yield Window(sub_array=sub_array, i=i, j=j, window_height=window_height, window_width=window_width)
+        for i in range(0, width - window_width + 1, horizontal_stride):
+            for j in range(0, height - window_height + 1, vertical_stride):
+                sub_array = self.arr[j:j + window_height, i:i + window_width]
+                yield Window(sub_array=sub_array, i=i, j=j, window_width=window_width, window_height=window_height)
 
 
 class SlidingWindowProcessor:

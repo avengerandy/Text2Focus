@@ -5,12 +5,12 @@ import json
 from typing import Tuple
 from sliding_window import SlidingWindowProcessor, Shape, Stride, Increment, Window
 from pareto import Solution, ParetoFront
-from fitness import total_sum, total_positive_ratio
-
+from fitness import total_sum, total_positive_ratio, total_cut_ratio
+from accelerator import CoordinateTransformer
 
 API_URL = "http://pyramid:8081/predict"
 IMAGE_PATH = "./src/example.jpg"
-
+OUTPUT_PATH = "./src/example_output.jpg"
 
 def load_image(image_path):
     image = cv2.imread(image_path)
@@ -37,26 +37,34 @@ def send_image_to_api(image_rgb):
     else:
         raise Exception(f"Error from API: {response.status_code} - {response.text}")
 
-def get_crop(pred_mask: np.ndarray) -> Window:
+def get_crop(pred_mask: np.ndarray, coordinateTransformer: CoordinateTransformer) -> Window:
 
-    pred_mask = np.array(pred_mask, dtype=np.float32) * 255
+    pred_mask = np.array(pred_mask, dtype=np.float32)
 
-    shape = Shape(height=100, width=100)
-    stride = Stride(vertical=50, horizontal=50)
-    increment = Increment(20, 20)
+    width, height = coordinateTransformer.convert_original_ratio_to_resized(1, 1, 20)
+
+    shape = Shape(width=width, height=height)
+    stride = Stride(horizontal=max(int(width/2), 1), vertical=max(int(height/2), 1))
+    increment = Increment(width=max(int(width/5), 1), height=max(int(height/5), 1))
     processor = SlidingWindowProcessor(pred_mask, shape, stride, increment)
 
-    pareto_front = ParetoFront(solution_dimensions=2)
+    pareto_front = ParetoFront(solution_dimensions=3)
+    positive_ratio_threshold = np.max(pred_mask) * 0.01
     for window in processor.process():
         total_sum_result = total_sum(window.sub_array)
-        total_positive_ratio_result = total_positive_ratio(window.sub_array, 1)
+        total_positive_ratio_result = total_positive_ratio(window.sub_array, positive_ratio_threshold)
+        total_cut_ratio_result = total_cut_ratio(window.sub_array)
 
-        solution_data = np.array([total_sum_result, total_positive_ratio_result])
+        solution_data = np.array([
+            total_sum_result,
+            total_positive_ratio_result,
+            total_cut_ratio_result
+        ])
         solution = Solution(solution_data, window)
 
         pareto_front.add_solution(solution)
 
-    best_solution = pareto_front.get_elbow_point()
+    best_solution = pareto_front.get_point_by_weight([1, 1, 1])
     print(f"best solution: {best_solution}")
     print(f"pareto solutions count {len(pareto_front.get_pareto_solutions())}")
 
@@ -65,23 +73,25 @@ def get_crop(pred_mask: np.ndarray) -> Window:
 
 if __name__ == '__main__':
     try:
-        image_rgb = load_image(IMAGE_PATH)
-        result = send_image_to_api(image_rgb)
+        image = load_image(IMAGE_PATH)
+        height, width, _ = image.shape
+        coordinateTransformer = CoordinateTransformer(width, height, 256, 256)
+        image_resized = cv2.resize(image, (256, 256))
+        result = send_image_to_api(image_resized)
         pred_mask = result.get('pred_mask')
 
         if pred_mask is None:
             raise Exception("No 'pred_mask' in response.")
 
-        best_metadata = get_crop(pred_mask)
-        image = image_rgb[
-            best_metadata.i:best_metadata.i + best_metadata.window_height,
-            best_metadata.j:best_metadata.j + best_metadata.window_width
-        ]
-        output_path = './src/output_image.jpg'
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(output_path, image)
+        best_metadata = get_crop(pred_mask, coordinateTransformer)
 
-        print(f"save to: {output_path}")
+        i, j = coordinateTransformer.convert_resized_to_original(best_metadata.i, best_metadata.j)
+        width, height = coordinateTransformer.convert_resized_to_original(best_metadata.window_width, best_metadata.window_height)
+        image = image[j:j + height, i:i + width]
+
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(OUTPUT_PATH, image)
+        print(f"save to: {OUTPUT_PATH}")
 
     except Exception as e:
         print(f"An error occurred: {e}")
