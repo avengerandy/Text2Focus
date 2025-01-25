@@ -90,13 +90,13 @@ class TestSlidingWindowScanner(unittest.TestCase):
 
         expected_results = [
             Window(sub_array=np.array([[1, 2], [5, 6]]), i=0, j=0, window_height=2, window_width=2),
-            Window(sub_array=np.array([[2, 3], [6, 7]]), i=0, j=1, window_height=2, window_width=2),
-            Window(sub_array=np.array([[3, 4], [7, 8]]), i=0, j=2, window_height=2, window_width=2),
-            Window(sub_array=np.array([[5, 6], [9, 10]]), i=1, j=0, window_height=2, window_width=2),
+            Window(sub_array=np.array([[5, 6], [9, 10]]), i=0, j=1, window_height=2, window_width=2),
+            Window(sub_array=np.array([[9, 10], [13, 14]]), i=0, j=2, window_height=2, window_width=2),
+            Window(sub_array=np.array([[2, 3], [6, 7]]), i=1, j=0, window_height=2, window_width=2),
             Window(sub_array=np.array([[6, 7], [10, 11]]), i=1, j=1, window_height=2, window_width=2),
-            Window(sub_array=np.array([[7, 8], [11, 12]]), i=1, j=2, window_height=2, window_width=2),
-            Window(sub_array=np.array([[9, 10], [13, 14]]), i=2, j=0, window_height=2, window_width=2),
-            Window(sub_array=np.array([[10, 11], [14, 15]]), i=2, j=1, window_height=2, window_width=2),
+            Window(sub_array=np.array([[10, 11], [14, 15]]), i=1, j=2, window_height=2, window_width=2),
+            Window(sub_array=np.array([[3, 4], [7, 8]]), i=2, j=0, window_height=2, window_width=2),
+            Window(sub_array=np.array([[7, 8], [11, 12]]), i=2, j=1, window_height=2, window_width=2),
             Window(sub_array=np.array([[11, 12], [15, 16]]), i=2, j=2, window_height=2, window_width=2)
         ]
 
@@ -146,19 +146,19 @@ class TestSlidingWindowProcessor(unittest.TestCase):
 
         expected_results = [
             Window(sub_array=np.array([[1, 2], [5, 6]]), i=0, j=0, window_height=2, window_width=2),
-            Window(sub_array=np.array([[2, 3], [6, 7]]), i=0, j=1, window_height=2, window_width=2),
-            Window(sub_array=np.array([[3, 4], [7, 8]]), i=0, j=2, window_height=2, window_width=2),
-            Window(sub_array=np.array([[5, 6], [9, 10]]), i=1, j=0, window_height=2, window_width=2),
+            Window(sub_array=np.array([[5, 6], [9, 10]]), i=0, j=1, window_height=2, window_width=2),
+            Window(sub_array=np.array([[9, 10], [13, 14]]), i=0, j=2, window_height=2, window_width=2),
+            Window(sub_array=np.array([[2, 3], [6, 7]]), i=1, j=0, window_height=2, window_width=2),
             Window(sub_array=np.array([[6, 7], [10, 11]]), i=1, j=1, window_height=2, window_width=2),
-            Window(sub_array=np.array([[7, 8], [11, 12]]), i=1, j=2, window_height=2, window_width=2),
-            Window(sub_array=np.array([[9, 10], [13, 14]]), i=2, j=0, window_height=2, window_width=2),
-            Window(sub_array=np.array([[10, 11], [14, 15]]), i=2, j=1, window_height=2, window_width=2),
+            Window(sub_array=np.array([[10, 11], [14, 15]]), i=1, j=2, window_height=2, window_width=2),
+            Window(sub_array=np.array([[3, 4], [7, 8]]), i=2, j=0, window_height=2, window_width=2),
+            Window(sub_array=np.array([[7, 8], [11, 12]]), i=2, j=1, window_height=2, window_width=2),
             Window(sub_array=np.array([[11, 12], [15, 16]]), i=2, j=2, window_height=2, window_width=2),
 
             Window(sub_array=np.array([[1, 2, 3], [5, 6, 7], [9, 10, 11]]), i=0, j=0, window_height=3, window_width=3),
-            Window(sub_array=np.array([[2, 3, 4], [6, 7, 8], [10, 11, 12]]), i=0, j=1, window_height=3, window_width=3),
-            Window(sub_array=np.array([[5, 6, 7], [9, 10, 11], [13, 14, 15]]), i=1, j=0, window_height=3, window_width=3),
-            Window(sub_array=np.array([[6, 7, 8], [10, 11, 12], [14, 15, 16]]), i=1, j=1, window_height=3, window_width=3),
+            Window(sub_array=np.array([[5, 6, 7], [9, 10, 11], [13, 14, 15]]), i=0, j=1, window_height=3, window_width=3),
+            Window(sub_array=np.array([[2, 3, 4], [6, 7, 8], [10, 11, 12]]), i=1, j=0, window_height=3, window_width=3),
+            Window(sub_array=np.array([[6, 7, 8], [10, 11, 12], [14, 15, 16]]), i=1, j=1, window_height=3, window_width=3)
         ]
 
         results = list(processor.process())
