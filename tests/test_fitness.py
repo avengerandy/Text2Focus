@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from src.fitness import total_sum, total_positive_ratio
+from src.fitness import total_sum, total_positive_ratio, total_cut_ratio
 
 class TestTotalFunctions(unittest.TestCase):
 
@@ -29,6 +29,16 @@ class TestTotalFunctions(unittest.TestCase):
 
         data = np.array([[0.0001, 0.0002], [0.0003, 0.01]])
         self.assertEqual(total_positive_ratio(data, epsilon=0.001), 0.25)
+
+    def test_total_cut_ratio(self):
+        data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        self.assertEqual(total_cut_ratio(data), -5.0)
+
+        data = np.array([[-1, -2], [3, 4]])
+        self.assertEqual(total_cut_ratio(data), -1.0)
+
+        data = np.array([[0, 0], [0, 0]])
+        self.assertEqual(total_cut_ratio(data), -0.0)
 
 
 if __name__ == "__main__":
