@@ -1,3 +1,7 @@
+from src.pareto import Solution, IParetoFront, ParetoFront
+import numpy as np
+
+
 class CoordinateTransformer:
     def __init__(self, original_width: int, original_height: int, resized_width: int, resized_height: int):
         self.scale_x = float(original_width) / resized_width
@@ -34,3 +38,59 @@ class CoordinateTransformer:
         if to_int:
             return int(except_x), int(original_y)
         return except_x, original_y
+
+
+class DividedParetoFront(IParetoFront):
+    def __init__(self, solution_dimensions: int, num_subsets: int = 4):
+        self.solution_dimensions = solution_dimensions
+        self.num_subsets = num_subsets
+        self.subsets = []
+        self.unified_pareto_front = ParetoFront(solution_dimensions)
+        self.is_updated = False
+
+        for _ in range(num_subsets):
+            self.subsets.append(ParetoFront(solution_dimensions))
+
+    def add_solution(self, solution: Solution):
+        subset_index = self._hash_solution(solution) % self.num_subsets
+        self.subsets[subset_index].add_solution(solution)
+
+        self.is_updated = True
+
+    def get_pareto_solutions(self) -> list:
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front.get_pareto_solutions()
+
+    def get_elbow_point(self) -> Solution:
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front.get_elbow_point()
+
+    def get_point_by_weight(self, weight: list[float]) -> Solution:
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front.get_point_by_weight(weight)
+
+    def _get_pareto(self) -> np.ndarray:
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front._get_pareto()
+
+    def _update_unified_pareto_front(self):
+        all_pareto_solutions = []
+        for subset in self.subsets:
+            all_pareto_solutions.extend(subset.get_pareto_solutions())
+
+        self.unified_pareto_front = ParetoFront(self.solution_dimensions)
+        for solution in all_pareto_solutions:
+            self.unified_pareto_front.add_solution(solution)
+
+        self.is_updated = False
+
+    def _hash_solution(self, solution: Solution):
+        return hash(tuple(solution.get_values()))
