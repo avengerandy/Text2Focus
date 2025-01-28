@@ -13,3 +13,5 @@ ENV PYTHONPATH="/app/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Dete
 
 WORKDIR /app/src
 RUN pip install --no-cache-dir flask
+
+CMD ["python", "server.py"]
