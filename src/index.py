@@ -3,10 +3,10 @@ import numpy as np
 import requests
 import json
 from typing import Tuple
-from sliding_window import SlidingWindowProcessor, Shape, Stride, Increment, Window
-from pareto import Solution, ParetoFront
-from fitness import total_sum, total_positive_ratio, total_cut_ratio
-from accelerator import CoordinateTransformer
+from src.sliding_window import SlidingWindowProcessor, Shape, Stride, Increment, Window
+from src.pareto import Solution
+from src.fitness import total_sum, total_positive_ratio, total_cut_ratio
+from src.accelerator import CoordinateTransformer, DividedParetoFront
 
 API_URL = "http://pyramid:8081/predict"
 IMAGE_PATH = "./src/example.jpg"
@@ -37,18 +37,18 @@ def send_image_to_api(image_rgb):
     else:
         raise Exception(f"Error from API: {response.status_code} - {response.text}")
 
-def get_crop(pred_mask: np.ndarray, coordinateTransformer: CoordinateTransformer) -> Window:
+def get_crop(pred_mask: np.ndarray, crop_ratio_width: int, crop_ratio_height: int, coordinateTransformer: CoordinateTransformer) -> Window:
 
     pred_mask = np.array(pred_mask, dtype=np.float32)
 
-    width, height = coordinateTransformer.convert_original_ratio_to_resized(1, 1, 20)
+    width, height = coordinateTransformer.convert_original_ratio_to_resized(crop_ratio_width, crop_ratio_height, 20)
 
     shape = Shape(width=width, height=height)
     stride = Stride(horizontal=max(int(width/2), 1), vertical=max(int(height/2), 1))
     increment = Increment(width=max(int(width/5), 1), height=max(int(height/5), 1))
     processor = SlidingWindowProcessor(pred_mask, shape, stride, increment)
 
-    pareto_front = ParetoFront(solution_dimensions=3)
+    pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
     positive_ratio_threshold = np.max(pred_mask) * 0.01
     for window in processor.process():
         total_sum_result = total_sum(window.sub_array)
@@ -83,10 +83,13 @@ if __name__ == '__main__':
         if pred_mask is None:
             raise Exception("No 'pred_mask' in response.")
 
-        best_metadata = get_crop(pred_mask, coordinateTransformer)
+        crop_ratio_width = 1
+        crop_ratio_height = 1
+        best_metadata = get_crop(pred_mask, crop_ratio_width, crop_ratio_height, coordinateTransformer)
 
         i, j = coordinateTransformer.convert_resized_to_original(best_metadata.i, best_metadata.j)
         width, height = coordinateTransformer.convert_resized_to_original(best_metadata.window_width, best_metadata.window_height)
+        height = int(width * (crop_ratio_height / crop_ratio_width))
         image = image[j:j + height, i:i + width]
 
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
