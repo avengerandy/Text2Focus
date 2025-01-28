@@ -49,6 +49,30 @@ services:
     networks:
       - main-network
 
+  owlv2:
+    container_name: owlv2-container
+
+    build:
+      context: .
+      dockerfile: ./owlv2/Dockerfile
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    volumes:
+      - ./owlv2:/app
+    stdin_open: true
+    tty: true
+    networks:
+      - main-network
+
 networks:
   main-network:
     driver: bridge

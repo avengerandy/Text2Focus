@@ -5,6 +5,8 @@ Thumbs.db
 .vscode/
 temp/
 .coverage
-Pyramid/*.pth
-Pyramid/*.jpg
+pyramid/*.pth
+pyramid/*.jpg
 src/*.jpg
+owlv2/*.jpg
+owlv2/*.pth

@@ -12,6 +12,8 @@ RUN git clone https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Netwo
 ENV PYTHONPATH="/app/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection:${PYTHONPATH}"
 
 WORKDIR /app/src
+
+# Install python dependencies
 RUN pip install --no-cache-dir flask
 
 CMD ["python", "server.py"]
