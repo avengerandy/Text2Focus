@@ -7,12 +7,13 @@ from src.fitness import total_sum, total_positive_ratio, total_cut_ratio
 from src.accelerator import CoordinateTransformer, DividedParetoFront
 
 # Constants
-API_URL = "http://pyramid:8081/predict"
+API_URL_PYRAMID = "http://pyramid:8081/predict"
+API_URL_OWLV2 = "http://owlv2:8082/predict"
 IMAGE_PATH = "./src/example.jpg"
 OUTPUT_PATH = "./src/example_output.jpg"
+PROMPTS = "anime face, hunman face, cartoon face, hunman head"
 RESIZED_IMAGE_DIM = (256, 256)  # (Width, Height)
 CROP_RATIO = (1, 1)  # (Width, Height)
-POSITIVE_RATIO_THRESHOLD_FACTOR = 0.01
 WINDOW_WIDTH = 20 # Width of the window to slide over RESIZED_IMAGE_DIM
 INCREMENT_FACTOR = 5 # Factor to set the increment of the window
 
@@ -25,11 +26,10 @@ def get_focus_metadata(pred_mask: np.ndarray, crop_ratio: tuple, coordinate_tran
     processor = SlidingWindowProcessor(pred_mask, shape, stride, increment)
 
     pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
-    positive_ratio_threshold = np.max(pred_mask) * POSITIVE_RATIO_THRESHOLD_FACTOR
 
     for window in processor.process():
         total_sum_result = total_sum(window.sub_array)
-        total_positive_ratio_result = total_positive_ratio(window.sub_array, positive_ratio_threshold)
+        total_positive_ratio_result = total_positive_ratio(window.sub_array)
         total_cut_ratio_result = total_cut_ratio(window.sub_array)
 
         solution_data = np.array([
@@ -51,12 +51,19 @@ def main():
         coordinate_transformer = CoordinateTransformer(width, height, *RESIZED_IMAGE_DIM)
         image_resized = cv2.resize(image, RESIZED_IMAGE_DIM)
 
-        # Send image to API and get prediction
-        result = post_json_to_api(API_URL, {'image': convert_to_json(image_resized)})
+        # Send image to API and get pyramid mask
+        result = post_json_to_api(API_URL_PYRAMID, {'image': convert_to_json(image_resized)})
         pred_mask = result.get('pred_mask')
         if pred_mask is None:
             raise Exception("No 'pred_mask' in response.")
         pred_mask = np.array(pred_mask, dtype=np.float32)
+
+        # Send image to API and get owlv2 mask
+        result = post_json_to_api(API_URL_OWLV2, {'image': convert_to_json(image_resized), 'prompts': PROMPTS})
+        pred_mask_v2 = result.get('pred_mask')
+        if pred_mask_v2 is None:
+            raise Exception("No 'pred_mask_v2' in response.")
+        pred_mask = pred_mask + np.array(pred_mask_v2, dtype=np.float32)
 
         # Get the best focus metadata
         best_metadata = get_focus_metadata(pred_mask, CROP_RATIO, coordinate_transformer)
