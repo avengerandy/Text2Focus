@@ -28,9 +28,9 @@ Text2Focus operates in a two-step process:
 
 The first step of the process involves detecting the most important parts of the image. This is done by combining two models:
 
-- **Pyramid (Saliency Detection)**: Pyramid identifies areas of the image that are visually prominent. It creates a mask highlighting these key regions.
+- **Pyramid (Saliency Detection)**: Pyramid \[1\]\[2\] identifies areas of the image that are visually prominent. It creates a mask highlighting these key regions.
 
-- **OWLv2 (Text-Conditioned Object Detection)**: OWLv2 uses the textual prompt provided by the user (e.g., "face," "dog") to detect specific objects or areas in the image that match the description.
+- **OWLv2 (Text-Conditioned Object Detection)**: OWLv2 \[3\]\[4\] uses the textual prompt provided by the user (e.g., "face," "dog") to detect specific objects or areas in the image that match the description.
 
 Both the saliency mask from Pyramid and the object detection mask from OWLv2 are combined to create a comprehensive mask representing the key regions that should be highlighted in the image.
 
@@ -95,4 +95,11 @@ This ensures that the final crop is tailored to the user’s priorities, choosin
 - Information about the project’s license.
 
 ## 9. References
-- Any references or external resources that helped shape the algorithm or that could be useful to users.
+
+[1] Zhao, Ting, and Xiangqian Wu. "Pyramid feature attention network for saliency detection." Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. 2019.
+
+[2] Sairajk. PyTorch Pyramid Feature Attention Network for Saliency Detection. GitHub, n.d., https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection.
+
+[3] Minderer, Matthias, Alexey Gritsenko, and Neil Houlsby. "Scaling open-vocabulary object detection." Advances in Neural Information Processing Systems 36 (2024).
+
+[4] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, n.d., https://huggingface.co/google/owlv2-base-patch16-ensemble.
