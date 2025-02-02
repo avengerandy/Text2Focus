@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any
+from sklearn.cluster import KMeans
 
 class Solution:
     def __init__(self, data: np.ndarray, metadata: Any = None):
@@ -76,6 +77,10 @@ class IParetoFront(ABC):
         pass
 
     @abstractmethod
+    def select_representative_solutions(self, num_solutions: int, random_state=42) -> list[Solution]:
+        pass
+
+    @abstractmethod
     def _get_pareto(self) -> np.ndarray:
         pass
 
@@ -145,6 +150,37 @@ class ParetoFront(IParetoFront):
 
         return Solution(self._get_pareto()[max_index], metadata)
 
+    def select_representative_solutions(self, num_solutions: int, random_state=42) -> list[Solution]:
+        pareto_front = self._normalize_pareto()
+
+        lower_bound = 0.1
+        upper_bound = 0.9
+        valid_indices = []
+
+        for i, solution in enumerate(pareto_front):
+            if np.all(solution >= lower_bound) and np.all(solution <= upper_bound):
+                valid_indices.append(i)
+
+        if len(valid_indices) < num_solutions:
+            valid_indices = range(len(pareto_front))
+
+        pareto_front_filtered = pareto_front[valid_indices]
+
+        if len(pareto_front_filtered) <= num_solutions:
+            solutions = self.get_pareto_solutions()
+            return [solutions[i] for i in valid_indices]
+
+        kmeans = KMeans(n_clusters=num_solutions, random_state=random_state)
+        kmeans.fit(pareto_front_filtered)
+        representative_solutions = kmeans.cluster_centers_
+
+        selected_solutions = []
+        for center in representative_solutions:
+            distances = np.linalg.norm(pareto_front_filtered - center, axis=1)
+            closest_index = np.argmin(distances)
+            selected_solutions.append(self.get_pareto_solutions()[valid_indices[closest_index]])
+
+        return selected_solutions
 
     def _normalize_pareto(self) -> np.ndarray:
         pareto_front = self._get_pareto()

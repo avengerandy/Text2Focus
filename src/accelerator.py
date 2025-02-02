@@ -75,6 +75,12 @@ class DividedParetoFront(IParetoFront):
 
         return self.unified_pareto_front.get_point_by_weight(weight)
 
+    def select_representative_solutions(self, num_solutions: int, random_state=42) -> list[Solution]:
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front.select_representative_solutions(num_solutions)
+
     def _get_pareto(self) -> np.ndarray:
         if self.is_updated:
             self._update_unified_pareto_front()

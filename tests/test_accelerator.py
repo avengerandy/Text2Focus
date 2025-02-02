@@ -50,7 +50,6 @@ class TestCoordinateTransformer(unittest.TestCase):
         self.assertEqual(original_y, 72.0)
 
 
-
 class TestDividedParetoFront(unittest.TestCase):
 
     def setUp(self):
@@ -146,6 +145,27 @@ class TestDividedParetoFront(unittest.TestCase):
         point = self.pareto_front.get_point_by_weight(weight)
         self.assertTrue(np.array_equal(solution_1.get_values(), point.get_values()))
         self.assertEqual(point.get_metadata(), "metadata1")
+
+    def test_select_representative_solutions(self):
+
+        solution_1 = Solution(np.array([1.1, 3.9], dtype=np.float64), metadata="metadata1")
+        solution_2 = Solution(np.array([1.0, 4.0], dtype=np.float64), metadata="metadata2")
+        solution_3 = Solution(np.array([0.9, 4.1], dtype=np.float64), metadata="metadata3")
+        solution_4 = Solution(np.array([3.9, 1.1], dtype=np.float64), metadata="metadata4")
+        solution_5 = Solution(np.array([4.0, 1.0], dtype=np.float64), metadata="metadata5")
+        solution_6 = Solution(np.array([4.1, 0.9], dtype=np.float64), metadata="metadata6")
+
+        self.pareto_front.add_solution(solution_1)
+        self.pareto_front.add_solution(solution_2)
+        self.pareto_front.add_solution(solution_3)
+        self.pareto_front.add_solution(solution_4)
+        self.pareto_front.add_solution(solution_5)
+        self.pareto_front.add_solution(solution_6)
+
+        representative_solutions = self.pareto_front.select_representative_solutions(num_solutions=2)
+        self.assertEqual(len(representative_solutions), 2)
+        self.assertTrue(any(np.array_equal(solution_2.get_values(), p.get_values()) for p in representative_solutions))
+        self.assertTrue(any(np.array_equal(solution_5.get_values(), p.get_values()) for p in representative_solutions))
 
 
 if __name__ == '__main__':
