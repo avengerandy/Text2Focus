@@ -1,0 +1,3 @@
+opencv-python-headless==4.11.0.86
+gradio==5.13.1
+scikit-learn==1.6.1
