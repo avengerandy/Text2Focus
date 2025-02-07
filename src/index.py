@@ -3,7 +3,7 @@ import numpy as np
 from src.utils import load_image, save_image, convert_to_json, post_json_to_api
 from src.sliding_window import SlidingWindowProcessor, Shape, Stride, Increment
 from src.pareto import Solution
-from src.fitness import total_sum, total_positive_ratio, total_cut_ratio
+from src.fitness import image_matrix_sum, image_matrix_average, image_matrix_negative_boundary_average
 from src.accelerator import CoordinateTransformer, DividedParetoFront
 
 # Constants
@@ -28,14 +28,14 @@ def get_focus_metadata(pred_mask: np.ndarray, crop_ratio: tuple, coordinate_tran
     pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
 
     for window in processor.process():
-        total_sum_result = total_sum(window.sub_array)
-        total_positive_ratio_result = total_positive_ratio(window.sub_array)
-        total_cut_ratio_result = total_cut_ratio(window.sub_array)
+        image_matrix_sum_result = image_matrix_sum(window.sub_image_matrix)
+        image_matrix_average_result = image_matrix_average(window.sub_image_matrix)
+        image_matrix_negative_boundary_average_result = image_matrix_negative_boundary_average(window.sub_image_matrix)
 
         solution_data = np.array([
-            total_sum_result,
-            total_positive_ratio_result,
-            total_cut_ratio_result
+            image_matrix_sum_result,
+            image_matrix_average_result,
+            image_matrix_negative_boundary_average_result
         ])
         solution = Solution(solution_data, window)
         pareto_front.add_solution(solution)

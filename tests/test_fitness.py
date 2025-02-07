@@ -1,38 +1,45 @@
 import unittest
+
 import numpy as np
-from src.fitness import total_sum, total_positive_ratio, total_cut_ratio
+
+from src.fitness import (
+    image_matrix_average,
+    image_matrix_negative_boundary_average,
+    image_matrix_sum,
+)
+
 
 class TestTotalFunctions(unittest.TestCase):
 
-    def test_total_sum(self):
+    def test_image_matrix_sum(self):
         data = np.array([[1, 2, 3], [4, 5, 6]])
-        self.assertEqual(total_sum(data), 21)
+        self.assertEqual(image_matrix_sum(data), 21)
 
         data = np.array([[-1, -2], [3, 4]])
-        self.assertEqual(total_sum(data), 4)
+        self.assertEqual(image_matrix_sum(data), 4)
 
         data = np.array([[0, 0], [0, 0]])
-        self.assertEqual(total_sum(data), 0)
+        self.assertEqual(image_matrix_sum(data), 0)
 
-    def test_total_positive_ratio(self):
+    def test_image_matrix_average(self):
         data = np.array([[1, 2, 3], [4, 5, 6]])
-        self.assertEqual(total_positive_ratio(data), 3.5)
+        self.assertEqual(image_matrix_average(data), 3.5)
 
         data = np.array([[-1, -2], [3, 4]])
-        self.assertEqual(total_positive_ratio(data), 1.0)
+        self.assertEqual(image_matrix_average(data), 1.0)
 
         data = np.array([[0, 0], [0, 0]])
-        self.assertEqual(total_positive_ratio(data), 0.0)
+        self.assertEqual(image_matrix_average(data), 0.0)
 
-    def test_total_cut_ratio(self):
+    def test_image_matrix_negative_boundary_average(self):
         data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        self.assertEqual(total_cut_ratio(data), -5.0)
+        self.assertEqual(image_matrix_negative_boundary_average(data), -5.0)
 
         data = np.array([[-1, -2], [3, 4]])
-        self.assertEqual(total_cut_ratio(data), -1.0)
+        self.assertEqual(image_matrix_negative_boundary_average(data), -1.0)
 
         data = np.array([[0, 0], [0, 0]])
-        self.assertEqual(total_cut_ratio(data), -0.0)
+        self.assertEqual(image_matrix_negative_boundary_average(data), -0.0)
 
 
 if __name__ == "__main__":
