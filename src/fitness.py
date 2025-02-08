@@ -11,10 +11,10 @@ def image_matrix_sum(image_matrix: np.ndarray) -> float:
     Calculate the sum of all elements in the image matrix.
 
     Parameters:
-    image_matrix (np.ndarray): The image matrix to evaluate.
+        image_matrix (np.ndarray): The image matrix to evaluate.
 
     Returns:
-    float: The sum of all elements in the image matrix.
+        float: The sum of all elements in the image matrix.
     """
     return np.sum(image_matrix)
 
@@ -24,10 +24,10 @@ def image_matrix_average(image_matrix: np.ndarray) -> float:
     Calculate the average value of all elements in the image matrix.
 
     Parameters:
-    image_matrix (np.ndarray): The image matrix to evaluate.
+        image_matrix (np.ndarray): The image matrix to evaluate.
 
     Returns:
-    float: The average value of all elements in the image matrix.
+        float: The average value of all elements in the image matrix.
     """
     return np.sum(image_matrix) / image_matrix.size
 
@@ -37,10 +37,10 @@ def image_matrix_negative_boundary_average(image_matrix: np.ndarray) -> float:
     Calculate the average value of the boundary elements of the image matrix.
 
     Parameters:
-    image_matrix (np.ndarray): The image matrix to evaluate.
+        image_matrix (np.ndarray): The image matrix to evaluate.
 
     Returns:
-    float: The average value of the boundary elements of the image matrix.
+        float: The average value of the boundary elements of the image matrix.
     """
     top_row = image_matrix[0, :]
     bottom_row = image_matrix[-1, :]
