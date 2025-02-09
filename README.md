@@ -162,15 +162,15 @@ classDiagram
 ```mermaid
 classDiagram
     namespace accelerator {
-        class GA
+        class GeneWindowGenerator
     }
 
     namespace sliding_window {
         class IWindowGenerator
         class Window
     }
-    IWindowGenerator <|-- GA
-    GA o-- Window
+    IWindowGenerator <|-- GeneWindowGenerator
+    GeneWindowGenerator o-- Window
 ```
 
 - Describe any performance optimizations or accelerations that are utilized, such as caching, parallelism, etc.
