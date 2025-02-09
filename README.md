@@ -66,9 +66,112 @@ This ensures that the final crop is tailored to the user’s priorities, choosin
 
 ### 3.2. Main Component Details
 
+```mermaid
+classDiagram
+    namespace sliding_window {
+        class Window {
+            <<immutable dataclass>>
+        }
+        class Stride {
+            <<immutable dataclass>>
+        }
+        class Shape {
+            <<dataclass>>
+        }
+        class Increment {
+            <<immutable dataclass>>
+        }
+        class SlidingWindowScanner
+        class SlidingWindowProcessor
+        class IWindowGenerator
+    }
+
+    SlidingWindowScanner o-- Stride
+    SlidingWindowScanner o-- Shape
+    SlidingWindowScanner o-- Window
+    SlidingWindowProcessor o-- Increment
+    SlidingWindowProcessor o-- Window
+    SlidingWindowProcessor *-- SlidingWindowScanner
+    IWindowGenerator <|-- SlidingWindowProcessor
+    IWindowGenerator o-- Window
+```
+
+
+```mermaid
+classDiagram
+    namespace pareto {
+        class IParetoFront
+        class ParetoFront
+        class DynamicRowMatrix
+        class Solution
+    }
+
+    IParetoFront <|-- ParetoFront
+    ParetoFront *-- DynamicRowMatrix
+    ParetoFront o-- Solution
+```
+
+```mermaid
+classDiagram
+    class fitness {
+        <<namespace>>
+        +image_matrix_sum(np.ndarray image_matrix) np.number
+        +image_matrix_average(np.ndarray image_matrix) np.number
+        +image_matrix_negative_boundary_average(np.ndarray image_matrix) np.number
+    }
+```
+
 - An overview of what main component inside the containers does and how they contribute to the algorithm's logic.
 
 ### 3.3. Optimization Techniques
+
+#### 3.3.1 memory share
+
+#### 3.3.2 Optimization Tools
+
+```mermaid
+classDiagram
+    namespace accelerator {
+        class CoordinateTransformer {
+            +float scale_x
+            +float scale_y
+            +convert_resized_to_original()
+            +convert_original_to_resized()
+            +convert_original_ratio_to_resized()
+            +convert_resized_ratio_to_original()
+        }
+    }
+```
+
+```mermaid
+classDiagram
+    namespace accelerator {
+        class DividedParetoFront
+    }
+
+    namespace pareto {
+        class IParetoFront
+        class ParetoFront
+    }
+
+    IParetoFront <|-- DividedParetoFront
+    DividedParetoFront *-- ParetoFront
+```
+
+
+```mermaid
+classDiagram
+    namespace accelerator {
+        class GA
+    }
+
+    namespace sliding_window {
+        class IWindowGenerator
+        class Window
+    }
+    IWindowGenerator <|-- GA
+    GA o-- Window
+```
 
 - Describe any performance optimizations or accelerations that are utilized, such as caching, parallelism, etc.
 
