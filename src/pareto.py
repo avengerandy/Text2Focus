@@ -223,7 +223,7 @@ class IParetoFront(ABC):
         """
 
     @abstractmethod
-    def _get_pareto(self) -> np.ndarray:
+    def get_pareto(self) -> np.ndarray:
         """
         Returns the Pareto front data.
 
@@ -290,9 +290,9 @@ class ParetoFront(IParetoFront):
         return [Solution(solutions[row], metadatas[row]) for row in indexs]
 
     def get_elbow_point(self) -> Solution:
-        if len(self._get_pareto()) == 1:
+        if len(self.get_pareto()) == 1:
             return Solution(
-                self._get_pareto()[0], self._metadatas[self._get_pareto_index()[0]]
+                self.get_pareto()[0], self._metadatas[self._get_pareto_index()[0]]
             )
 
         pareto_values = self._normalize_pareto()
@@ -301,16 +301,16 @@ class ParetoFront(IParetoFront):
         diffs_of_diffs = np.diff(distances)
 
         max_change_index = np.argmax(diffs_of_diffs) + 1
-        best_elbow_point = self._get_pareto()[max_change_index]
+        best_elbow_point = self.get_pareto()[max_change_index]
 
         metadata = self._metadatas[self._get_pareto_index()[max_change_index]]
 
         return Solution(best_elbow_point, metadata)
 
     def get_point_by_weight(self, weight: list[float]) -> Solution:
-        if len(self._get_pareto()) == 1:
+        if len(self.get_pareto()) == 1:
             return Solution(
-                self._get_pareto()[0], self._metadatas[self._get_pareto_index()[0]]
+                self.get_pareto()[0], self._metadatas[self._get_pareto_index()[0]]
             )
 
         pareto_values = self._normalize_pareto()
@@ -320,7 +320,7 @@ class ParetoFront(IParetoFront):
 
         metadata = self._metadatas[self._get_pareto_index()[max_index]]
 
-        return Solution(self._get_pareto()[max_index], metadata)
+        return Solution(self.get_pareto()[max_index], metadata)
 
     def select_representative_solutions(
         self, num_solutions: int, random_state=42
@@ -367,12 +367,12 @@ class ParetoFront(IParetoFront):
         return selected_solutions
 
     def _normalize_pareto(self) -> np.ndarray:
-        pareto_front = self._get_pareto()
+        pareto_front = self.get_pareto()
         min_vals = np.min(pareto_front, axis=0)
         max_vals = np.max(pareto_front, axis=0)
         return (pareto_front - min_vals) / (max_vals - min_vals + 1e-8)
 
-    def _get_pareto(self) -> np.ndarray:
+    def get_pareto(self) -> np.ndarray:
         pareto_front = self.matrix.get_data()
         pareto_mask = self.pareto_front_mask.get_data()
 

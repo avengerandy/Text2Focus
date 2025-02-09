@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.pareto import DynamicRowMatrix, ParetoFront, Solution
+from src.pareto import DynamicRowMatrix, IParetoFront, ParetoFront, Solution
 
 
 class TestSolution(unittest.TestCase):
@@ -93,6 +93,9 @@ class TestParetoFront(unittest.TestCase):
 
     def setUp(self):
         self.pareto_front = ParetoFront(solution_dimensions=2)
+
+    def test_is_pareto_front_interface(self):
+        self.assertTrue(issubclass(ParetoFront, IParetoFront))
 
     def test_add_solution(self):
         solution_1 = Solution(np.array([1, 2], dtype=np.float64), metadata="metadata1")

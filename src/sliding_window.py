@@ -23,9 +23,9 @@ Usage:
       used for further processing.
 """
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generator
-from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -139,6 +139,10 @@ class SlidingWindowScanner(IWindowGenerator):
     """
 
     def __init__(self, image_matrix: np.ndarray, shape: Shape, stride: Stride):
+        """
+        Initialize the sliding window scanner with the image matrix, window shape,
+        and stride.
+        """
         self.image_matrix = image_matrix
         self.shape = shape
         self.stride = stride
@@ -198,6 +202,9 @@ class SlidingWindowProcessor(IWindowGenerator):
         scanner: SlidingWindowScanner,
         increment: Increment,
     ):
+        """
+        Initialize the sliding window processor with the scanner and increment.
+        """
         self.scanner = scanner
         self.increment = increment
 

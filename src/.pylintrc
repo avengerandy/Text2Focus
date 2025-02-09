@@ -1,3 +1,11 @@
 [MESSAGES CONTROL]
 disable=R0903
 # R0903: Too few public methods
+
+[MASTER]
+max-attributes=10
+# R0902: too-many-instance-attributes (%s/max-attributes)
+max-args=10
+# R0913: Too many arguments (%s/max-args)
+max-positional-arguments=10
+#R0917: Too many positional arguments (%s/max-positional-arguments)

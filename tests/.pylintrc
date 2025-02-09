@@ -1,5 +1,6 @@
 [MESSAGES CONTROL]
-disable=C0114,C0115,C0116
+disable=C0114,C0115,C0116,R0801
 # C0114: missing-module-docstring
 # C0115: missing-class-docstring
 # C0116: missing-function-docstring
+# R0801: duplicate-code

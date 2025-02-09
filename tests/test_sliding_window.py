@@ -5,6 +5,7 @@ import numpy as np
 
 from src.sliding_window import (
     Increment,
+    IWindowGenerator,
     Shape,
     SlidingWindowProcessor,
     SlidingWindowScanner,
@@ -106,6 +107,9 @@ class TestWindow(unittest.TestCase):
 
 
 class TestSlidingWindowScanner(unittest.TestCase):
+
+    def test_is_window_generator_interface(self):
+        self.assertTrue(issubclass(SlidingWindowScanner, IWindowGenerator))
 
     def test_generate_windows(self):
         image_matrix = np.array(
@@ -223,6 +227,9 @@ class TestSlidingWindowScanner(unittest.TestCase):
 
 
 class TestSlidingWindowProcessor(unittest.TestCase):
+
+    def test_is_window_generator_interface(self):
+        self.assertTrue(issubclass(SlidingWindowScanner, IWindowGenerator))
 
     def test_process(self):
         image_matrix = np.array(
