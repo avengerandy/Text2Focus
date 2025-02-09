@@ -25,6 +25,7 @@ Usage:
 
 from dataclasses import dataclass
 from typing import Generator
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -107,7 +108,23 @@ class Window:
     window_height: int
 
 
-class SlidingWindowScanner:
+class IWindowGenerator(ABC):
+    """
+    Interface for a window generator.
+    """
+
+    @abstractmethod
+    def generate_windows(self) -> Generator[Window, None, None]:
+        """
+        Generate Window objects over the image matrix.
+
+        Yields:
+            Window: The window object containing the sub-matrix, window position,
+            and dimensions.
+        """
+
+
+class SlidingWindowScanner(IWindowGenerator):
     """
     Scans the image matrix using a sliding window approach.
 
@@ -161,7 +178,7 @@ class SlidingWindowScanner:
                 )
 
 
-class SlidingWindowProcessor:
+class SlidingWindowProcessor(IWindowGenerator):
     """
     Processes an image matrix using sliding windows and adjusts the window size
     dynamically.
@@ -170,27 +187,21 @@ class SlidingWindowProcessor:
     after each scan by the given increment.
 
     Attributes:
-        image_matrix (np.ndarray): The image matrix (2D array) to process.
-        shape (Shape): The shape (width and height) of the sliding window.
-        stride (Stride): The stride (step size) for sliding the window horizontally
-        and vertically.
+        scanner (SlidingWindowScanner): The scanner object that generates sliding
+        windows over the image matrix.
         increment (Increment): The amount by which the window size is incremented
         after each scan.
     """
 
     def __init__(
         self,
-        image_matrix: np.ndarray,
-        shape: Shape,
-        stride: Stride,
+        scanner: SlidingWindowScanner,
         increment: Increment,
     ):
-        self.image_matrix = image_matrix
-        self.shape = shape
-        self.stride = stride
+        self.scanner = scanner
         self.increment = increment
 
-    def process(self) -> Generator[Window, None, None]:
+    def generate_windows(self) -> Generator[Window, None, None]:
         """
         Processes the image matrix with a sliding window and dynamically increases
         the window size.
@@ -202,14 +213,9 @@ class SlidingWindowProcessor:
             Window: The window object containing the sub-matrix, window position,
             and dimensions.
         """
-        scanner = SlidingWindowScanner(self.image_matrix, self.shape, self.stride)
-
-        # Continue processing until the window exceeds the dimensions of the image
         while (
-            self.shape.height <= self.image_matrix.shape[0]
-            and self.shape.width <= self.image_matrix.shape[1]
+            self.scanner.shape.height <= self.scanner.image_matrix.shape[0]
+            and self.scanner.shape.width <= self.scanner.image_matrix.shape[1]
         ):
-            yield from scanner.generate_windows()
-
-            # Expand the window shape after processing the current set of windows
-            self.shape.expand(self.increment)
+            yield from self.scanner.generate_windows()
+            self.scanner.shape.expand(self.increment)

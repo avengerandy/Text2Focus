@@ -231,8 +231,8 @@ class TestSlidingWindowProcessor(unittest.TestCase):
         shape = Shape(width=2, height=2)
         stride = Stride(horizontal=1, vertical=1)
         increment = Increment(width=1, height=1)
-
-        processor = SlidingWindowProcessor(image_matrix, shape, stride, increment)
+        scanner = SlidingWindowScanner(image_matrix, shape, stride)
+        processor = SlidingWindowProcessor(scanner, increment)
 
         expected_results = [
             Window(
@@ -328,7 +328,7 @@ class TestSlidingWindowProcessor(unittest.TestCase):
             ),
         ]
 
-        results = list(processor.process())
+        results = list(processor.generate_windows())
         for expected, result in zip(expected_results, results):
             np.testing.assert_array_equal(
                 expected.sub_image_matrix, result.sub_image_matrix
@@ -345,7 +345,8 @@ class TestSlidingWindowProcessor(unittest.TestCase):
         shape = Shape(width=2, height=2)
         stride = Stride(horizontal=1, vertical=1)
         increment = Increment(width=3, height=3)
-        processor = SlidingWindowProcessor(image_matrix, shape, stride, increment)
+        scanner = SlidingWindowScanner(image_matrix, shape, stride)
+        processor = SlidingWindowProcessor(scanner, increment)
 
         expected_results = [
             Window(
@@ -357,7 +358,7 @@ class TestSlidingWindowProcessor(unittest.TestCase):
             )
         ]
 
-        results = list(processor.process())
+        results = list(processor.generate_windows())
         for expected, result in zip(expected_results, results):
             np.testing.assert_array_equal(
                 expected.sub_image_matrix, result.sub_image_matrix

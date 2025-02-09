@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from src.utils import load_image, save_image, convert_to_json, post_json_to_api
-from src.sliding_window import SlidingWindowProcessor, Shape, Stride, Increment
+from src.sliding_window import SlidingWindowScanner, SlidingWindowProcessor, Shape, Stride, Increment
 from src.pareto import Solution
 from src.fitness import image_matrix_sum, image_matrix_average, image_matrix_negative_boundary_average
 from src.accelerator import CoordinateTransformer, DividedParetoFront
@@ -23,11 +23,12 @@ def get_focus_metadata(pred_mask: np.ndarray, crop_ratio: tuple, coordinate_tran
     shape = Shape(width=width, height=height)
     stride = Stride(horizontal=max(int(width / 2), 1), vertical=max(int(height / 2), 1))
     increment = Increment(width=max(int(width / INCREMENT_FACTOR), 1), height=max(int(height / INCREMENT_FACTOR), 1))
-    processor = SlidingWindowProcessor(pred_mask, shape, stride, increment)
+    scanner = SlidingWindowScanner(pred_mask, shape, stride)
+    processor = SlidingWindowProcessor(scanner, increment)
 
     pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
 
-    for window in processor.process():
+    for window in processor.generate_windows():
         image_matrix_sum_result = image_matrix_sum(window.sub_image_matrix)
         image_matrix_average_result = image_matrix_average(window.sub_image_matrix)
         image_matrix_negative_boundary_average_result = image_matrix_negative_boundary_average(window.sub_image_matrix)
