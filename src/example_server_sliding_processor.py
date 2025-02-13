@@ -76,7 +76,7 @@ def process_image(
     processor = get_sliding_window_processor(
         predict_mask, resized_width_ratio, resized_height_ratio
     )
-    pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=3)
+    pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
 
     for window in processor.generate_windows():
         solution_data = np.array(
