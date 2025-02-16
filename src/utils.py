@@ -150,22 +150,22 @@ def run_gradio_server(process_image: Callable) -> None:
     """
     with gr.Blocks() as demo:
         with gr.Row():
-            prompts_input = gr.Textbox(value=PROMPTS_DEFAULT, label="Prompts")
-            crop_width_ratio_input = gr.Number(
-                value=1.0, label="Crop Width Ratio", interactive=True
-            )
-            crop_height_ratio_input = gr.Number(
-                value=1.0, label="Crop Height Ratio", interactive=True
-            )
-            foreground_object_ratio = gr.Slider(
-                minimum=0,
-                maximum=1,
-                step=0.01,
-                value=0.5,
-                label="Foreground Object Ratio",
-            )
+            with gr.Column():
+                prompts_input = gr.Textbox(value=PROMPTS_DEFAULT, label="Prompts")
+                crop_width_ratio_input = gr.Number(
+                    value=1.0, label="Crop Width Ratio", interactive=True
+                )
+                crop_height_ratio_input = gr.Number(
+                    value=1.0, label="Crop Height Ratio", interactive=True
+                )
+                foreground_object_ratio = gr.Slider(
+                    minimum=0,
+                    maximum=1,
+                    step=0.01,
+                    value=0.5,
+                    label="Foreground Object Ratio",
+                )
 
-        with gr.Row():
             image_input = gr.Image(type="numpy", label="Upload Image")
             mask_image = gr.Image(type="numpy", label="mask Image")
 
