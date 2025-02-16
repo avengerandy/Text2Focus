@@ -2,6 +2,10 @@
 
 Text2Focus automatically crops images based on textual descriptions, highlighting key areas.
 
+![demo.gif](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/demo.gif)
+
+The test images used in this project were captured from a game called **Infinity Nikki** \[1\].
+
 ## 1. Introduction and Features
 
 Text2Focus is a tool designed to automatically crop images, focusing on the most important areas based on both the content of the image and user-defined textual prompts. It is especially useful for tasks that require emphasizing specific features or regions of an image.
@@ -28,9 +32,9 @@ Text2Focus operates in a two-step process:
 
 The first step of the process involves detecting the most important parts of the image. This is done by combining two models:
 
-- **Pyramid (Saliency Detection)**: Pyramid \[1\]\[2\] identifies areas of the image that are visually prominent. It creates a mask highlighting these key regions.
+- **Pyramid (Saliency Detection)**: Pyramid \[2\]\[3\] identifies areas of the image that are visually prominent. It creates a mask highlighting these key regions.
 
-- **OWLv2 (Text-Conditioned Object Detection)**: OWLv2 \[3\]\[4\] uses the textual prompt provided by the user (e.g., "face," "dog") to detect specific objects or areas in the image that match the description.
+- **OWLv2 (Text-Conditioned Object Detection)**: OWLv2 \[4\]\[5\] uses the textual prompt provided by the user (e.g., "face," "dog") to detect specific objects or areas in the image that match the description.
 
 Both the saliency mask from Pyramid and the object detection mask from OWLv2 are combined to create a comprehensive mask representing the key regions that should be highlighted in the image.
 
@@ -158,7 +162,6 @@ classDiagram
     DividedParetoFront *-- ParetoFront
 ```
 
-
 ```mermaid
 classDiagram
     namespace accelerator {
@@ -183,26 +186,53 @@ classDiagram
 ## 5. Usage Guidelines
 
 - Recommendations for how to use the algorithm.
+
+Zero-shot object detection sounds intelligent, but in practical applications, it might just be a fancy feature. The reason for this is that the performance of zero-shot detection is usually lower than algorithms specifically trained to detect certain objects.
+
+There are a few situations users should be aware of:
+
+* **If the object you're detecting is common** (e.g., car, human, etc.), it is highly likely that there is already a pre-existing dataset (e.g., COCO) and pre-trained models available that you can use. In this case, you don't need to rely on OWLv2.
+
+* **If the object you're detecting is uncommon**, but you have image data available, you can consider using OWLv2 as a tool to assist in annotating your data, and then train a specialized model. For example, you can train a model like [Anime Face Detector](https://github.com/qhgz2013/anime-face-detector), a Faster-RCNN-based anime face detector \[6\].
+
+* **Only if you completely lack a dataset**, or if your use case involves unpredictable detection needs (e.g., letting users decide what to detect), should you consider using OWLv2 for zero-shot object detection.
+
 - When to replace components or customize certain parts depending on the use case.
 
-## 6. Contributing
+In the algorithm, there are some acceleration tools that you should consider using based on the use case:
 
-- Instructions for how others can contribute to the project (e.g., opening issues, submitting pull requests).
+- **CoordinateTransformer** is used for scaling images. This is almost mandatory because larger images consume more resources. Always use this to ensure the image is properly scaled before processing.
 
-## 7. future work
+![full_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/full_mode.png)
 
-- Potential future improvements or extensions of the algorithm.
+- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use **SlidingWindowScanner**. There's no need for multi-objective optimization here since the `cover` mode inherently stretches the image to its maximum, ensuring the image fits the container. You can refer to `example_server_sliding_scanner.py` for implementation details.
 
-## 8. License
+![crop_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/crop_mode.png)
+
+- **Precise Crop Mode** involves using **SlidingWindowProcessor**, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use **DividedParetoFront** for acceleration. This helps speed up the processing without losing accuracy. You can check `example_server_sliding_processor.py` for more details.
+
+- **Approximation Crop Mode** uses **GeneWindowGenerator** to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, **ParetoFront** can be used directly without the need for additional acceleration. You can refer to `example_server_gene_window.py` for how this is implemented.
+
+| Mode | IWindowGenerator | IParetoFront |
+|------|------------------|--------------|
+| Fill Mode (Special Case) | SlidingWindowScanner | None |
+| Precise Mode (Slower) | SlidingWindowProcessor | DividedParetoFront |
+| Approximation Mode (Faster) | GeneWindowGenerator | ParetoFront |
+
+## 6. License
 
 - Information about the project’s license.
 
-## 9. References
+## 7. References
 
-[1] Zhao, Ting, and Xiangqian Wu. "Pyramid feature attention network for saliency detection." Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. 2019.
+[1] Infold Games. Infinity Nikki Official Website – The Coziest Open-World Game. Infinity Nikki Official Website, n.d., https://infinitynikki.infoldgames.com/en/home.
 
-[2] Sairajk. PyTorch Pyramid Feature Attention Network for Saliency Detection. GitHub, n.d., https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection.
+[2] Zhao, Ting, and Xiangqian Wu. "Pyramid feature attention network for saliency detection." Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. 2019.
 
-[3] Minderer, Matthias, Alexey Gritsenko, and Neil Houlsby. "Scaling open-vocabulary object detection." Advances in Neural Information Processing Systems 36 (2024).
+[3] Sairajk. PyTorch Pyramid Feature Attention Network for Saliency Detection. GitHub, n.d., https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection.
 
-[4] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, n.d., https://huggingface.co/google/owlv2-base-patch16-ensemble.
+[4] Minderer, Matthias, Alexey Gritsenko, and Neil Houlsby. "Scaling open-vocabulary object detection." Advances in Neural Information Processing Systems 36 (2024).
+
+[5] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, n.d., https://huggingface.co/google/owlv2-base-patch16-ensemble.
+
+[6] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, n.d., https://github.com/qhgz2013/anime-face-detector.
