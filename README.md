@@ -4,7 +4,7 @@ Text2Focus automatically crops images based on textual descriptions, highlightin
 
 ![demo.gif](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/demo.gif)
 
-The test images used in this project were captured from a game called **Infinity Nikki** \[1\].
+The test images used in this project were captured from a game called Infinity Nikki \[1\].
 
 ## 1. Introduction and Features
 
@@ -12,7 +12,7 @@ Text2Focus is a tool designed to automatically crop images, focusing on the most
 
 ### Key Features:
 
-- **Text-Based Focus**: Simply enter a text description (e.g., "human face," "cartoon character," "dog") to guide the algorithm in determining the most relevant regions to focus on. The image is then cropped to highlight these areas based on the user’s input.
+- **Text-Based Focus**: Simply enter a text description (e.g., human face, cartoon character, dog) to guide the algorithm in determining the most relevant regions to focus on. The image is then cropped to highlight these areas based on the user’s input.
 
 - **Automatic Cropping**: After identifying the key areas in the image, the tool automatically performs the crop, ensuring the final output showcases only the most important parts of the image.
 
@@ -44,17 +44,17 @@ Optimizing the crop is a critical step because it involves balancing multiple fa
 
 Different users may have different priorities (e.g., more key points, better visual balance, etc.), and a single objective cannot cover all of these preferences effectively.
 
-This is why **multi-objective optimization** is used—it allows the algorithm to consider several competing factors at once and find the most balanced crop based on the user's needs.
+This is why multi-objective optimization is used—it allows the algorithm to consider several competing factors at once and find the most balanced crop based on the user's needs.
 
-The algorithm evaluates different cropping options using **multi-objective optimization**, balancing the following objectives:
+The algorithm evaluates different cropping options using multi-objective optimization, balancing the following objectives:
 
 1. **Total Key Points**: The crop should contain as many of the important regions as possible, ensuring that the most relevant features of the image are preserved.
 
-2. **Proportion of Key Area**: The crop should aim to maximize the proportion of key areas within the selected region. It may conflict with **Total Key Points**, which could reduce the proportion.
+2. **Proportion of Key Area**: The crop should aim to maximize the proportion of key areas within the selected region. It may conflict with Total Key Points, which could reduce the proportion.
 
 3. **Inclusion of Important Features**: The crop must ensure that significant areas (like faces or objects) are fully captured without cutting them off or leaving them out of the frame.
 
-To optimize the crop, the algorithm evaluates these different objectives using **Pareto Front Optimization**. This method helps the algorithm find the "best" crop by balancing these different factors.
+To optimize the crop, the algorithm evaluates these different objectives using Pareto Front Optimization. This method helps the algorithm find the "best" crop by balancing these different factors.
 
 A Pareto optimal solution means that no crop can improve in one aspect (e.g., more key points) without losing in another (e.g., proportion of key areas or inclusion of important features).
 
@@ -64,11 +64,11 @@ This ensures that the final crop is tailored to the user’s priorities, choosin
 
 ## 3. Implementation Details
 
-### 3.1. Containers Interaction
+### Containers Interaction
 
 - Explanation of how different containers interact with each other in the algorithm.
 
-### 3.2. Main Component Details
+### Main Component Details
 
 ```mermaid
 classDiagram
@@ -127,11 +127,11 @@ classDiagram
 
 - An overview of what main component inside the containers does and how they contribute to the algorithm's logic.
 
-### 3.3. Optimization Techniques
+### Optimization Techniques
 
-#### 3.3.1 memory share
+#### memory share
 
-#### 3.3.2 Optimization Tools
+#### Optimization Tools
 
 ```mermaid
 classDiagram
@@ -185,7 +185,7 @@ classDiagram
 
 ## 5. Usage Guidelines
 
-- Recommendations for how to use the algorithm.
+### Recommendations for how to use the algorithm.
 
 Zero-shot object detection sounds intelligent, but in practical applications, it might just be a fancy feature. The reason for this is that the performance of zero-shot detection is usually lower than algorithms specifically trained to detect certain objects.
 
@@ -197,27 +197,35 @@ There are a few situations users should be aware of:
 
 * **Only if you completely lack a dataset**, or if your use case involves unpredictable detection needs (e.g., letting users decide what to detect), should you consider using OWLv2 for zero-shot object detection.
 
-- When to replace components or customize certain parts depending on the use case.
+### When to replace components or customize certain parts depending on the use case.
 
 In the algorithm, there are some acceleration tools that you should consider using based on the use case:
 
+#### CoordinateTransformer
+
 - **CoordinateTransformer** is used for scaling images. This is almost mandatory because larger images consume more resources. Always use this to ensure the image is properly scaled before processing.
 
-![full_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/full_mode.png)
-
-- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use **SlidingWindowScanner**. There's no need for multi-objective optimization here since the `cover` mode inherently stretches the image to its maximum, ensuring the image fits the container. You can refer to `example_server_sliding_scanner.py` for implementation details.
+#### Crop Mode
 
 ![crop_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/crop_mode.png)
 
-- **Precise Crop Mode** involves using **SlidingWindowProcessor**, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use **DividedParetoFront** for acceleration. This helps speed up the processing without losing accuracy. You can check `example_server_sliding_processor.py` for more details.
+- **Precise Crop Mode** involves using `SlidingWindowProcessor`, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use `DividedParetoFront` for acceleration. This helps speed up the processing without losing accuracy. You can check `example_server_sliding_processor.py` for more details.
 
-- **Approximation Crop Mode** uses **GeneWindowGenerator** to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, **ParetoFront** can be used directly without the need for additional acceleration. You can refer to `example_server_gene_window.py` for how this is implemented.
+- **Approximation Crop Mode** uses `GeneWindowGenerator` to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, `ParetoFront` can be used directly without the need for additional acceleration. You can refer to `example_server_gene_window.py` for how this is implemented.
+
+#### Fill Mode
+
+![full_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/full_mode.png)
+
+- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use `SlidingWindowScanner`. There's no need for multi-objective optimization here since the `cover` mode inherently stretches the image to its maximum, ensuring the image fits the container. You can refer to `example_server_sliding_scanner.py` for implementation details.
+
+#### Conclusion
 
 | Mode | IWindowGenerator | IParetoFront |
 |------|------------------|--------------|
+| Precise Crop Mode (Slower) | SlidingWindowProcessor | DividedParetoFront |
+| Approximation Crop Mode (Faster) | GeneWindowGenerator | ParetoFront |
 | Fill Mode (Special Case) | SlidingWindowScanner | None |
-| Precise Mode (Slower) | SlidingWindowProcessor | DividedParetoFront |
-| Approximation Mode (Faster) | GeneWindowGenerator | ParetoFront |
 
 ## 6. License
 
