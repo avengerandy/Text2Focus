@@ -221,7 +221,7 @@ In the algorithm, there are some acceleration tools that you should consider usi
 
 ## 6. License
 
-- Information about the project’s license.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/avengerandy/Text2Focus/blob/master/LICENSE) file for more details.
 
 ## 7. References
 
