@@ -152,6 +152,27 @@ classDiagram
 
 #### memory share
 
+In the algorithm, memory is optimized by using references to portions of the matrix, avoiding unnecessary memory duplication.
+
+For example, in the `SlidingWindowScanner`, the `generate_windows` method slices the image matrix instead of creating copies:
+
+```python
+class SlidingWindowScanner:
+    def generate_windows(self) -> Generator[Window, None, None]:
+        for i in range(0, width - window_width + 1, horizontal_stride):
+            for j in range(0, height - window_height + 1, vertical_stride):
+                sub_image_matrix = self.image_matrix[
+                    j : j + window_height, i : i + window_width
+                ]
+                yield Window(sub_image_matrix=sub_image_matrix, i=i, j=j, ...)
+```
+
+Here, sub_image_matrix is just a reference to a section of the original image_matrix, reducing memory overhead by avoiding data duplication.
+
+This reference-based approach also ensures that the SlidingWindowProcessor, which dynamically adjusts the window size and frequently generates new windows, doesn't consume excessive resources when creating multiple matrices.
+
+> Warning: When modifying or extending this code, it's important to remember that many operations in this project rely on shared memory references at the lower level. This practice is common throughout the project, and improper handling could lead to unexpected behavior or excessive memory usage.
+
 #### Optimization Tools
 
 ```mermaid
