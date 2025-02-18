@@ -66,7 +66,28 @@ This ensures that the final crop is tailored to the user’s priorities, choosin
 
 ### Containers Interaction
 
-- Explanation of how different containers interact with each other in the algorithm.
+The algorithm is divided into three Docker containers based on functionality. Each container performs its respective computation, and communication is carried out through HTTP protocols.
+
+```mermaid
+sequenceDiagram
+
+    actor User
+    participant main server
+    participant Pyramid server
+    participant OWLv2 server
+
+    User->>main server: image & prompts
+    main server->>Pyramid server: image
+    Pyramid server->>main server: Saliency Detection of image
+    main server->>OWLv2 server: image & prompts
+    OWLv2 server->>main server: Object Detection of image
+    activate main server
+    Note right of main server: Optimizing the Crop
+    deactivate main server
+    main server->>User: representative solutions
+```
+
+For detailed container setup, please refer to the [docker-compose.yml](https://github.com/avengerandy/Text2Focus/blob/master/docker-compose.yml) file for more information.
 
 ### Main Component Details
 
