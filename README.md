@@ -34,9 +34,15 @@ The first step of the process involves detecting the most important parts of the
 
 - **Pyramid (Saliency Detection)**: Pyramid \[2\]\[3\] identifies areas of the image that are visually prominent. It creates a mask highlighting these key regions.
 
+![pyramid_mask.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/pyramid_mask.png)
+
 - **OWLv2 (Text-Conditioned Object Detection)**: OWLv2 \[4\]\[5\] uses the textual prompt provided by the user (e.g., "face," "dog") to detect specific objects or areas in the image that match the description.
 
+![owlv2_mask.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/owlv2_mask.png)
+
 Both the saliency mask from Pyramid and the object detection mask from OWLv2 are combined to create a comprehensive mask representing the key regions that should be highlighted in the image.
+
+![total_mask.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/total_mask.png)
 
 ### Optimizing the Crop
 
@@ -44,23 +50,31 @@ Optimizing the crop is a critical step because it involves balancing multiple fa
 
 Different users may have different priorities (e.g., more key points, better visual balance, etc.), and a single objective cannot cover all of these preferences effectively.
 
+![single_fitness.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/single_fitness.png)
+
 This is why multi-objective optimization is used—it allows the algorithm to consider several competing factors at once and find the most balanced crop based on the user's needs.
 
 The algorithm evaluates different cropping options using multi-objective optimization, balancing the following objectives:
 
-1. **Total Key Points**: The crop should contain as many of the important regions as possible, ensuring that the most relevant features of the image are preserved.
+1. **Total Key Area**: The crop should contain as many of the important regions as possible, ensuring that the most relevant features of the image are preserved.
 
 2. **Proportion of Key Area**: The crop should aim to maximize the proportion of key areas within the selected region. It may conflict with Total Key Points, which could reduce the proportion.
 
-3. **Inclusion of Important Features**: The crop must ensure that significant areas (like faces or objects) are fully captured without cutting them off or leaving them out of the frame.
+3. **Avoidance of Cutting Key Areas**: The crop should ensure that important areas (such as faces or key objects) are not cut off or excluded from the frame, even if they are not fully included within the crop.
 
 To optimize the crop, the algorithm evaluates these different objectives using Pareto Front Optimization. This method helps the algorithm find the "best" crop by balancing these different factors.
+
+![front_pareto.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/front_pareto.png)
+
+The front pareto image from wiki \[6\].
 
 A Pareto optimal solution means that no crop can improve in one aspect (e.g., more key points) without losing in another (e.g., proportion of key areas or inclusion of important features).
 
 The user can adjust the weight of each factor to select the most suitable solution from the Pareto Front Optimization set, allowing for customized cropping based on their preferences.
 
 This ensures that the final crop is tailored to the user’s priorities, choosing from a set of optimal, non-dominated solutions.
+
+![multi_fitness.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/multi_fitness.png)
 
 ## 3. Implementation Details
 
@@ -235,7 +249,7 @@ There are a few situations users should be aware of:
 
 * **If the object you're detecting is common** (e.g., car, human, etc.), it is highly likely that there is already a pre-existing dataset (e.g., COCO) and pre-trained models available that you can use. In this case, you don't need to rely on OWLv2.
 
-* **If the object you're detecting is uncommon**, but you have image data available, you can consider using OWLv2 as a tool to assist in annotating your data, and then train a specialized model. For example, you can train a model like [Anime Face Detector](https://github.com/qhgz2013/anime-face-detector), a Faster-RCNN-based anime face detector \[6\].
+* **If the object you're detecting is uncommon**, but you have image data available, you can consider using OWLv2 as a tool to assist in annotating your data, and then train a specialized model. For example, you can train a model like [Anime Face Detector](https://github.com/qhgz2013/anime-face-detector), a Faster-RCNN-based anime face detector \[7\].
 
 * **Only if you completely lack a dataset**, or if your use case involves unpredictable detection needs (e.g., letting users decide what to detect), should you consider using OWLv2 for zero-shot object detection.
 
@@ -285,4 +299,6 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 [5] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, n.d., https://huggingface.co/google/owlv2-base-patch16-ensemble.
 
-[6] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, n.d., https://github.com/qhgz2013/anime-face-detector.
+[6] Nojhan - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=770240
+
+[7] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, n.d., https://github.com/qhgz2013/anime-face-detector.
