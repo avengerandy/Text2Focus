@@ -189,6 +189,8 @@ This reference-based approach also ensures that the SlidingWindowProcessor, whic
 
 #### Optimization Tools
 
+* `CoordinateTransformer` is used to handle the coordinate transformation issues that arise when resizing images.
+
 ```mermaid
 classDiagram
     namespace accelerator {
@@ -202,6 +204,12 @@ classDiagram
         }
     }
 ```
+
+Since key area extraction doesn't require extremely high resolution, it is common practice to downscale images to speed up the process. This tool's main purpose is to provide the conversion between coordinates in the original image and the resized image.
+
+Whether converting the coordinates from the resized image back to the original size, or transforming the original size's ratio to fit the resized version, `CoordinateTransformer` ensures that the system can work efficiently with different image sizes while maintaining accurate positioning.
+
+* `DividedParetoFront` utilizes a divide-and-conquer strategy to manage the large number of solutions that may arise in the multi-objective optimization process.
 
 ```mermaid
 classDiagram
@@ -218,6 +226,12 @@ classDiagram
     DividedParetoFront *-- ParetoFront
 ```
 
+By breaking down the problem into multiple smaller Pareto Fronts, this tool reduces the exponential growth of the solution space, making the process more time-efficient.
+
+This method helps maintain a manageable number of solutions to evaluate, preventing performance bottlenecks and optimizing the decision-making process by handling multiple Pareto fronts.
+
+* `GeneWindowGenerator` is a window generator that uses genetic algorithms to generate solutions.
+
 ```mermaid
 classDiagram
     namespace accelerator {
@@ -232,7 +246,9 @@ classDiagram
     GeneWindowGenerator o-- Window
 ```
 
-- Describe any performance optimizations or accelerations that are utilized, such as caching, parallelism, etc.
+It applies operations such as random window generation, crossover, and mutation to create various windows. Essentially, this tool is a simplified version of the NSGA-II [8] multi-objective genetic algorithm, which can be used to generate window configurations with optimized properties.
+
+While the full NSGA-II could potentially provide higher-quality results, the simplified version is often sufficient for many tasks and provides an efficient way to generate good solutions without excessive computational cost.
 
 ## 4. Testing & Deployment
 
@@ -302,3 +318,5 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 [6] Nojhan - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=770240
 
 [7] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, n.d., https://github.com/qhgz2013/anime-face-detector.
+
+[8] Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.
