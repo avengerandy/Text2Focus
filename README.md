@@ -105,6 +105,10 @@ For detailed container setup, please refer to the [docker-compose.yml](https://g
 
 ### Main Component Details
 
+* `sliding_window`
+
+This module provides a set of classes and methods designed for performing sliding window operations on an image matrix. The primary purpose of this module is to allow users to extract sub-matrices (or windows) from a larger image matrix in a controlled and systematic way, using customizable window sizes, strides, and dynamic resizing.
+
 ```mermaid
 classDiagram
     namespace sliding_window {
@@ -135,11 +139,31 @@ classDiagram
     IWindowGenerator o-- Window
 ```
 
+The core functionality revolves around the concept of a sliding window, which moves across the image in steps, both horizontally and vertically, based on the defined stride. The `Shape` class defines the initial size of the window, and the `Stride` class controls how far the window moves at each step. Additionally, the window size can be incrementally increased after each pass, allowing the user to perform scans with progressively larger windows.
+
+The module also introduces two main implementations of the `IWindowGenerator` interface, which is responsible for generating the sliding windows:
+
+1. SlidingWindowScanner: This class generates sliding windows over the image matrix based on the defined window shape and stride. It scans the image in a straightforward manner without altering the window size between scans. Once the window reaches the end of the image matrix, it stops.
+
+2. SlidingWindowProcessor: This class builds on the functionality of `SlidingWindowScanner` but introduces dynamic resizing. It allows the window to expand after each scan by a specified increment, meaning that the window size will increase with each pass, enabling the extraction of sub-matrices at varying levels of granularity.
+
+In summary, both `SlidingWindowScanner` and `SlidingWindowProcessor` implement the `IWindowGenerator` interface, but the key difference is that `SlidingWindowProcessor` incorporates dynamic window expansion by adjusting the window size after each scan, whereas `SlidingWindowScanner` keeps the window size fixed throughout.
+
+* `pareto`
+
+This module provides tools for managing Pareto front solutions in multi-objective optimization problems. It includes several classes for storing, updating, and filtering solutions, with the core functionality focused on managing the Pareto front — eliminating dominated solutions and selecting the best ones based on different criteria.
 
 ```mermaid
 classDiagram
     namespace pareto {
-        class IParetoFront
+        class IParetoFront {
+            +add_solution(Solution)
+            +get_pareto() np.ndarray
+            +get_pareto_solutions() list[Solution]
+            +get_elbow_point() Solution
+            +get_point_by_weight(weight: list[float]) Solution
+            +select_representative_solutions(num_solutions: int) list[Solution]
+        }
         class ParetoFront
         class DynamicRowMatrix
         class Solution
@@ -149,6 +173,20 @@ classDiagram
     ParetoFront *-- DynamicRowMatrix
     ParetoFront o-- Solution
 ```
+
+The `Solution` class represents a single solution with associated values (e.g., objective values) and optional metadata. It provides methods to check if one solution is dominated by another and to retrieve its values and metadata.
+
+The `DynamicRowMatrix` class is used to dynamically resize a matrix that stores solutions, expanding it as needed when new solutions are added. This class helps efficiently manage the growing number of solutions during optimization.
+
+The `IParetoFront` interface defines the essential operations for handling Pareto fronts, such as adding solutions, retrieving Pareto optimal solutions, and selecting representative solutions based on specific criteria like clustering or a weight vector.
+
+The `ParetoFront` class implements the `IParetoFront` interface and provides functionality to maintain and analyze the Pareto front. It supports adding solutions, retrieving Pareto optimal solutions, selecting solutions based on different criteria (e.g., the elbow point or weighted solutions), and even selecting representative solutions using clustering techniques like KMeans.
+
+In summary, this module offers a robust framework for managing Pareto fronts in multi-objective optimization problems, allowing for the efficient addition, analysis, and selection of solutions based on various optimization criteria.
+
+* `fitness`
+
+This module contains a set of fitness functions used to evaluate the quality of an image matrix.
 
 ```mermaid
 classDiagram
@@ -160,7 +198,13 @@ classDiagram
     }
 ```
 
-- An overview of what main component inside the containers does and how they contribute to the algorithm's logic.
+By combining these tools:
+
+1. the `sliding_window` module generates solutions
+2. the `fitness` module evaluates them
+3. the `pareto` module filters and assesses the solutions based on Pareto optimality
+
+They provide the foundational operations needed for the program to function. The following sections will introduce advanced techniques to accelerate these processes and optimize performance.
 
 ### Optimization Techniques
 
@@ -189,7 +233,9 @@ This reference-based approach also ensures that the SlidingWindowProcessor, whic
 
 #### Optimization Tools
 
-* `CoordinateTransformer` is used to handle the coordinate transformation issues that arise when resizing images.
+* `CoordinateTransformer`
+
+This class is used to handle the coordinate transformation issues that arise when resizing images.
 
 ```mermaid
 classDiagram
@@ -209,7 +255,9 @@ Since key area extraction doesn't require extremely high resolution, it is commo
 
 Whether converting the coordinates from the resized image back to the original size, or transforming the original size's ratio to fit the resized version, `CoordinateTransformer` ensures that the system can work efficiently with different image sizes while maintaining accurate positioning.
 
-* `DividedParetoFront` utilizes a divide-and-conquer strategy to manage the large number of solutions that may arise in the multi-objective optimization process.
+* `DividedParetoFront`
+
+This class utilizes a divide-and-conquer strategy to manage the large number of solutions that may arise in the multi-objective optimization process.
 
 ```mermaid
 classDiagram
@@ -230,7 +278,9 @@ By breaking down the problem into multiple smaller Pareto Fronts, this tool redu
 
 This method helps maintain a manageable number of solutions to evaluate, preventing performance bottlenecks and optimizing the decision-making process by handling multiple Pareto fronts.
 
-* `GeneWindowGenerator` is a window generator that uses genetic algorithms to generate solutions.
+* `GeneWindowGenerator`
+
+This class is a window generator that uses genetic algorithms to generate solutions.
 
 ```mermaid
 classDiagram
