@@ -245,6 +245,22 @@ class DividedParetoFront(IParetoFront):
 
         return self.unified_pareto_front.get_pareto()
 
+    def get_percentile_rank(self, solution: Solution) -> list[float]:
+        """
+        Calculates the Percentile Rank (PR) of the given solution for each dimension
+        in the unified Pareto front.
+
+        Parameters:
+            solution (Solution): The solution for which to calculate PR values.
+
+        Returns:
+            list[float]: A list of PR values for each dimension.
+        """
+        if self.is_updated:
+            self._update_unified_pareto_front()
+
+        return self.unified_pareto_front.get_percentile_rank(solution)
+
     def _update_unified_pareto_front(self):
         """
         Updates the unified Pareto front by combining all the subsets.

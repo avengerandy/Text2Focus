@@ -80,5 +80,48 @@ def process_image(
     )
 
 
+def get_pareto_front(
+    image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
+):
+    """
+    Get the pareto front for the given image.
+    """
+    # resize
+    image_resized, coordinate_transformer = get_resized_image(image, RESIZED_DIM)
+
+    # predict_mask from API
+    predict_mask = get_predict_mask(image_resized, prompts, foreground_object_ratio)
+
+    # use genetic algorithm to find the best window
+    pareto_front = ParetoFront(solution_dimensions=3)
+    # 100 can be any large number.
+    # It is just to ensure that the resized ratio is not 0
+    # or that the proportions do not change too much.
+    resized_width_ratio, resized_height_ratio = (
+        coordinate_transformer.convert_original_ratio_to_resized(
+            crop_width_ratio, crop_height_ratio, 100
+        )
+    )
+    gene_window_generator = GeneWindowGenerator(
+        predict_mask, resized_width_ratio, resized_height_ratio
+    )
+
+    for window in gene_window_generator.generate_windows():
+        solution_data = np.array(
+            [
+                image_matrix_sum(window.sub_image_matrix),
+                image_matrix_average(window.sub_image_matrix),
+                image_matrix_negative_boundary_average(window.sub_image_matrix),
+            ]
+        )
+        solution = Solution(solution_data, window)
+        pareto_front.add_solution(solution)
+        gene_window_generator.population = [
+            solution.get_metadata() for solution in pareto_front.get_pareto_solutions()
+        ]
+
+    return pareto_front
+
+
 if __name__ == "__main__":
     run_gradio_server(process_image)

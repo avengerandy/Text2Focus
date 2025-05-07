@@ -99,5 +99,41 @@ def process_image(
     )
 
 
+def get_pareto_front(
+    image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
+):
+    """
+    Get the pareto front for the given image.
+    """
+    # resize
+    image_resized, coordinate_transformer = get_resized_image(image, RESIZED_DIM)
+
+    # predict_mask from API
+    predict_mask = get_predict_mask(image_resized, prompts, foreground_object_ratio)
+
+    resized_width_ratio, resized_height_ratio = (
+        coordinate_transformer.convert_original_ratio_to_resized(
+            crop_width_ratio, crop_height_ratio, WINDOW_WIDTH
+        )
+    )
+    processor = get_sliding_window_processor(
+        predict_mask, resized_width_ratio, resized_height_ratio
+    )
+    pareto_front = DividedParetoFront(solution_dimensions=3, num_subsets=10)
+
+    for window in processor.generate_windows():
+        solution_data = np.array(
+            [
+                image_matrix_sum(window.sub_image_matrix),
+                image_matrix_average(window.sub_image_matrix),
+                image_matrix_negative_boundary_average(window.sub_image_matrix),
+            ]
+        )
+        solution = Solution(solution_data, window)
+        pareto_front.add_solution(solution)
+
+    return pareto_front
+
+
 if __name__ == "__main__":
     run_gradio_server(process_image)

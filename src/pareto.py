@@ -231,6 +231,19 @@ class IParetoFront(ABC):
             np.ndarray: Pareto front data as a numpy array.
         """
 
+    @abstractmethod
+    def get_percentile_rank(self, solution: Solution) -> list[float]:
+        """
+        Calculates the Percentile Rank (PR) of the given solution for each dimension
+        in the Pareto front solution set.
+
+        Parameters:
+            solution (Solution): The solution for which to calculate PR values.
+
+        Returns:
+            list[float]: A list of PR values for each dimension.
+        """
+
 
 class ParetoFront(IParetoFront):
     """
@@ -381,6 +394,28 @@ class ParetoFront(IParetoFront):
 
         pareto_mask = np.squeeze(pareto_mask)
         return pareto_front[pareto_mask == 1]
+
+    def get_percentile_rank(self, solution: Solution) -> list[float]:
+        """
+        Calculates the Percentile Rank (PR) of the given solution for each dimension
+        in the Pareto front solution set.
+
+        Parameters:
+            solution (Solution): The solution for which to calculate PR values.
+
+        Returns:
+            list[float]: A list of PR values for each dimension.
+        """
+        pareto_solutions = self.get_pareto()
+        solution_values = solution.get_values()
+
+        pr_values = []
+        for dim in range(pareto_solutions.shape[1]):
+            dim_values = pareto_solutions[:, dim]
+            rank = np.sum(dim_values <= solution_values[dim]) / len(dim_values)
+            pr_values.append(rank)
+
+        return pr_values
 
     def _get_pareto_index(self) -> np.ndarray:
         pareto_mask = self.pareto_front_mask.get_data()
