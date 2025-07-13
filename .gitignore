@@ -6,7 +6,6 @@ Thumbs.db
 temp/
 .coverage
 pyramid/*.pth
-pyramid/*.jpg
 src/*.jpg
 owlv2/*.pth
 experiment/**/*.jpg
