@@ -8,6 +8,6 @@ temp/
 pyramid/*.pth
 pyramid/*.jpg
 src/*.jpg
-owlv2/*.jpg
 owlv2/*.pth
 experiment/**/*.jpg
+llmTools/
