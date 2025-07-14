@@ -302,8 +302,64 @@ While the full NSGA-II could potentially provide higher-quality results, the sim
 
 ## 4. Testing & Deployment
 
-- Overview of testing strategies (unit tests, integration tests, etc.)
-- Instructions on how to deploy. install and set up the project.
+### 4.1 Docker Compose Deployment
+
+The system is divided into three main components: `owlv2`, `pyramid`, and the main crop optimization logic. These are managed via `docker-compose`.
+
+To start all services:
+
+```bash
+docker compose up --build
+```
+
+This will launch the following containers:
+
+* `owlv2-container` – zero-shot object detection
+* `pyramid-container` – saliency detection
+* `pytorch-container` – main algorithm logic
+
+All services communicate through internal HTTP APIs.
+
+> Note: By default, each container uses `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime` as the base image. You may freely change this base image depending on your system setup (e.g., different CUDA versions, or CPU-only environments). GPU support is optional but recommended for best performance.
+
+### 4.2 OWLv2 Service
+
+The OWLv2 service automatically downloads its model weights from Hugging Face on first run. Once launched, it immediately starts the object detection server.
+
+You can verify that the OWLv2 service is working correctly by running:
+
+```bash
+python test_integration.py
+```
+
+inside the container. This script will send a test image to the server and validate the output mask.
+
+### 4.3 Pyramid Service
+
+The Pyramid service also downloads some model weights from Hugging Face on first run. However, **some checkpoints must be manually downloaded** from the [official repository](https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection) \[3\].
+
+Before running the container:
+
+1. Download the checkpoint from the official repository \[3\].
+2. Place the checkpoint file in the `pyramid/` directory.
+3. Make sure the checkpoint file is accessible inside the container, not just on the host.
+4. Update the `MODEL_PATH` variable in `pyramid/server.py` to match your local checkpoint path and filename.
+
+Once launched, it immediately starts the saliency detection server.
+
+You can verify that the Pyramid service is working correctly by running:
+
+```bash
+python test_integration.py
+```
+
+inside the container. This script will send a test image to the server and validate the output mask.
+
+### 4.4 Main Algorithm Logic
+
+**TODO**
+
+This container hosts the core crop optimization logic and coordinates requests to the Pyramid and OWLv2 services.
 
 ## 5. Usage Guidelines
 
