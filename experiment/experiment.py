@@ -16,6 +16,9 @@ from src.example_server_sliding_processor import (
 from src.pareto import Solution
 from src.utils import load_image
 
+if not os.path.exists("src") or not os.path.exists("experiment"):
+    raise RuntimeError("Please run this script from the project root directory.")
+
 
 def process_images_in_folder(
     data_folder,

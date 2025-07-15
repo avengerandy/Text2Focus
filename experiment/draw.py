@@ -2,12 +2,18 @@
 This module is used to draw boxplots for the results of the experiment comparing
 """
 
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
+
+if not os.path.exists("src") or not os.path.exists("experiment"):
+    raise RuntimeError("Please run this script from the project root directory.")
 
 cats_data = pd.read_csv("./experiment/experiment_cats_results.csv")
 dogs_data = pd.read_csv("./experiment/experiment_dogs_results.csv")
 data = pd.concat([cats_data, dogs_data], ignore_index=True)
+
 
 def save_boxplot(experiment_data, columns, labels, title, ylabel, filename):
     """
@@ -48,7 +54,7 @@ save_boxplot(
     labels=["Sliding", "GA"],
     title="Time Distribution: Gene vs Sliding (With Outliers)",
     ylabel="Time (seconds)",
-    filename="./img/time_boxplot.png"
+    filename="./img/time_boxplot.png",
 )
 
 save_boxplot(
