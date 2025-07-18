@@ -432,24 +432,7 @@ class GeneWindowGenerator(IWindowGenerator):
         Returns:
             Window: The mutated window.
         """
-        i, j, window_width, window_height = self.generate_random_rectangle()
-        i = int((window.i + i) / 2)
-        j = int((window.j + j) / 2)
-        window_width = int((window.window_width + window_width) / 2)
-        window_height = int((window.window_height + window_height) / 2)
-
-        if i + window_width < self.width and j + window_height < self.height:
-            return Window(
-                sub_image_matrix=self.image_matrix[
-                    j : j + window_height, i : i + window_width
-                ],
-                i=i,
-                j=j,
-                window_width=window_width,
-                window_height=window_height,
-            )
-
-        return self.generate_random_window()
+        return self.crossover(window, self.generate_random_window())
 
     def generate_windows(self) -> Generator[Window, None, None]:
         """
@@ -471,3 +454,158 @@ class GeneWindowGenerator(IWindowGenerator):
                 yield self.crossover(parent1, parent2)
             else:
                 yield self.mutation(parent1)
+
+
+class NSGA2WindowGenerator(GeneWindowGenerator):
+    def __init__(
+        self,
+        image_matrix: np.ndarray,
+        width_ratio: float,
+        height_ratio: float,
+        population_size: int = 50,
+        generations: int = 100,
+        crossover_mutation_ratio: float = 0.9,
+        random_seed: int = None,
+        fitness_funcs: list = None,
+    ):
+        self.image_matrix = image_matrix
+        self.width_ratio = width_ratio
+        self.height_ratio = height_ratio
+        self.width, self.height = image_matrix.shape
+        self.population_size = population_size
+        self.generations = generations
+        self.crossover_mutation_ratio = crossover_mutation_ratio
+        self.population: list[Window] = []
+        self.random = random.Random(random_seed)
+
+        if fitness_funcs is None:
+            raise ValueError("Must provide fitness_funcs (list of callables)")
+        self.fitness_funcs = fitness_funcs
+
+    def evaluate_fitness(self, population: list[Window]) -> np.ndarray:
+        fitness_values = []
+        for window in population:
+            vals = np.array([f(window.sub_image_matrix) for f in self.fitness_funcs])
+            fitness_values.append(vals)
+        return np.array(fitness_values)
+
+    def dominates(self, a: np.ndarray, b: np.ndarray) -> bool:
+        return np.all(a >= b) and np.any(a > b)
+
+    def non_dominated_sort(self, fitnesses: np.ndarray) -> list[list[int]]:
+        S = [[] for _ in range(len(fitnesses))]
+        n = [0] * len(fitnesses)
+        rank = [0] * len(fitnesses)
+        fronts = [[]]
+
+        for p in range(len(fitnesses)):
+            for q in range(len(fitnesses)):
+                if self.dominates(fitnesses[p], fitnesses[q]):
+                    S[p].append(q)
+                elif self.dominates(fitnesses[q], fitnesses[p]):
+                    n[p] += 1
+            if n[p] == 0:
+                rank[p] = 0
+                fronts[0].append(p)
+
+        i = 0
+        while fronts[i]:
+            next_front = []
+            for p in fronts[i]:
+                for q in S[p]:
+                    n[q] -= 1
+                    if n[q] == 0:
+                        rank[q] = i + 1
+                        next_front.append(q)
+            i += 1
+            fronts.append(next_front)
+
+        fronts.pop()  # remove last empty front
+        return fronts
+
+    def crowding_distance(self, fitnesses: np.ndarray, front: list[int]) -> np.ndarray:
+        distance = np.zeros(len(front))
+        if len(front) == 0:
+            return distance
+        num_objectives = fitnesses.shape[1]
+
+        for m in range(num_objectives):
+            values = fitnesses[front, m]
+            sorted_idx = np.argsort(values)
+            max_val = values[sorted_idx[-1]]
+            min_val = values[sorted_idx[0]]
+
+            distance[sorted_idx[0]] = distance[sorted_idx[-1]] = np.inf
+            for i in range(1, len(front) - 1):
+                if max_val - min_val == 0:
+                    dist = 0
+                else:
+                    dist = (values[sorted_idx[i + 1]] - values[sorted_idx[i - 1]]) / (max_val - min_val)
+                distance[sorted_idx[i]] += dist
+
+        return distance
+
+    def tournament_selection(
+        self,
+        population: list[Window],
+        fitnesses: np.ndarray,
+        fronts: list[list[int]],
+        crowding_distances: list[np.ndarray],
+    ) -> int:
+        i1, i2 = self.random.sample(range(len(population)), 2)
+
+        def better(i, j):
+            rank_i = next(idx for idx, f in enumerate(fronts) if i in f)
+            rank_j = next(idx for idx, f in enumerate(fronts) if j in f)
+            if rank_i < rank_j:
+                return True
+            elif rank_i > rank_j:
+                return False
+            else:
+                dist_i = crowding_distances[rank_i][fronts[rank_i].index(i)]
+                dist_j = crowding_distances[rank_j][fronts[rank_j].index(j)]
+                return dist_i > dist_j
+
+        return i1 if better(i1, i2) else i2
+
+    def run_generation(self):
+        fitnesses = self.evaluate_fitness(self.population)
+        fronts = self.non_dominated_sort(fitnesses)
+        crowding_distances = [self.crowding_distance(fitnesses, f) for f in fronts]
+
+        offspring = []
+        while len(offspring) < self.population_size:
+            parent1_idx = self.tournament_selection(self.population, fitnesses, fronts, crowding_distances)
+            parent2_idx = self.tournament_selection(self.population, fitnesses, fronts, crowding_distances)
+
+            if self.random.random() < self.crossover_mutation_ratio:
+                child = self.crossover(self.population[parent1_idx], self.population[parent2_idx])
+            else:
+                child = self.mutation(self.population[parent1_idx])
+
+            offspring.append(child)
+
+        combined_population = self.population + offspring
+        combined_fitnesses = self.evaluate_fitness(combined_population)
+        combined_fronts = self.non_dominated_sort(combined_fitnesses)
+        combined_crowding = [self.crowding_distance(combined_fitnesses, f) for f in combined_fronts]
+
+        new_population = []
+        for front, dist in zip(combined_fronts, combined_crowding):
+            if len(new_population) + len(front) <= self.population_size:
+                new_population.extend([combined_population[i] for i in front])
+            else:
+                sorted_front = sorted(zip(front, dist), key=lambda x: x[1], reverse=True)
+                slots_left = self.population_size - len(new_population)
+                new_population.extend([combined_population[i] for i, _ in sorted_front[:slots_left]])
+                break
+
+        self.population = new_population
+
+    def generate_windows(self) -> Generator[Window, None, None]:
+        self.population = [self.generate_random_window() for _ in range(self.population_size)]
+
+        for _ in range(self.generations):
+            self.run_generation()
+        for window in self.population:
+            yield window
