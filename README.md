@@ -389,13 +389,22 @@ In the algorithm, there are some acceleration tools that you should consider usi
 
 - **Precise Crop Mode** involves using `SlidingWindowProcessor`, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use `DividedParetoFront` for acceleration. This helps speed up the processing without losing accuracy. You can check `SlidingFocusTemplate` in `template.py` for more details.
 
-- **Approximation Crop Mode** uses `GeneWindowGenerator` to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, `ParetoFront` can be used directly without the need for additional acceleration. You can check `GeneFocusTemplate` in `template.py` for more details.
+- **Approximation Crop Mode**
+
+1. Uses `GeneWindowGenerator` to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, `ParetoFront` can be used directly without the need for additional acceleration. You can check `GeneFocusTemplate` in `template.py` for more details.
+
+2. Uses `NSGA2WindowGenerator`, which implements a more advanced genetic algorithm based on NSGA-II. This method strikes a balance between precision and performance—typically achieving more accurate results than `GeneWindowGenerator` while being faster than `SlidingWindowProcessor`. You can check `NSGA2FocusTemplate` in `template.py` for more details.
+
+You can refer to the figure below, which shows the PR (Percentile Rank) of `GeneWindowGenerator` compared to `SlidingWindowProcessor` in terms of accuracy and execution time. To reproduce the experiment, please refer to the code in the `experiment` folder.
+
+![pr_boxplot.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/pr_boxplot.png)
+![time_boxplot.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/time_boxplot.png)
 
 #### Fill Mode
 
 ![full_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/full_mode.png)
 
-- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use `SlidingWindowScanner`. There's no need for multi-objective optimization here since the `cover` mode inherently stretches the image to its maximum, ensuring the image fits the container. You can refer to `example_server_sliding_scanner.py` for implementation details.
+- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use `SlidingWindowScanner`. Technically, multi-objective optimization is not strictly necessary for this mode, since the goal is inherently geometric. However, to maintain a consistent interface across different modes, the implementation still evaluates three objective dimensions and returns a ParetoFront. You can check `ScannerFocusTemplate` in `template.py` for more details.
 
 #### Conclusion
 

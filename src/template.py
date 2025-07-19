@@ -7,6 +7,7 @@ from src.accelerator import (
     CoordinateTransformer,
     DividedParetoFront,
     GeneWindowGenerator,
+    NSGA2WindowGenerator,
 )
 from src.fitness import (
     image_matrix_average,
@@ -36,6 +37,11 @@ class CropResult:
 class Test2FocusTemplate(ABC):
     def __init__(self):
         self._solution_dimensions: int = 3
+        self._fitness: array = [
+            image_matrix_sum,
+            image_matrix_average,
+            image_matrix_negative_boundary_average,
+        ]
         self._pareto_front: IParetoFront | None = None
         self._window_generator: IWindowGenerator | None = None
 
@@ -81,9 +87,9 @@ class Test2FocusTemplate(ABC):
         for window in self._window_generator.generate_windows():
             solution_data = np.array(
                 [
-                    image_matrix_sum(window.sub_image_matrix),
-                    image_matrix_average(window.sub_image_matrix),
-                    image_matrix_negative_boundary_average(window.sub_image_matrix),
+                    self._fitness[0](window.sub_image_matrix),
+                    self._fitness[1](window.sub_image_matrix),
+                    self._fitness[2](window.sub_image_matrix),
                 ]
             )
             solution = Solution(solution_data, window)
@@ -126,6 +132,32 @@ class GeneFocusTemplate(Test2FocusTemplate):
         ]
 
 
+class NSGA2FocusTemplate(Test2FocusTemplate):
+
+    def init_pareto_front(self):
+        self._pareto_front = ParetoFront(solution_dimensions=self._solution_dimensions)
+
+    def init_window_generator(
+        self, predict_mask, resized_width_ratio, resized_height_ratio
+    ):
+        self._window_generator = NSGA2WindowGenerator(
+            predict_mask,
+            resized_width_ratio,
+            resized_height_ratio,
+            fitness_funcs=self._fitness,
+        )
+
+    def generate_resized_ratio(
+        self, coordinate_transformer, crop_width_ratio, crop_height_ratio
+    ):
+        # 100 can be any large number.
+        # It is just to ensure that the resized ratio is not 0
+        # or that the proportions do not change too much.
+        return coordinate_transformer.convert_original_ratio_to_resized(
+            crop_width_ratio, crop_height_ratio, 100
+        )
+
+
 class SlidingFocusTemplate(Test2FocusTemplate):
 
     WINDOW_WIDTH = 20
@@ -160,3 +192,37 @@ class SlidingFocusTemplate(Test2FocusTemplate):
         )
         scanner = SlidingWindowScanner(predict_mask, shape, stride)
         self._window_generator = SlidingWindowProcessor(scanner, increment)
+
+
+class ScannerFocusTemplate(Test2FocusTemplate):
+
+    STRIDE_DIM = (10, 10)
+
+    def init_pareto_front(self):
+        self._pareto_front = ParetoFront(solution_dimensions=self._solution_dimensions)
+
+    def generate_resized_ratio(
+        self, coordinate_transformer, crop_width_ratio, crop_height_ratio
+    ):
+        # 100 can be any large number.
+        # It is just to ensure that the resized ratio is not 0
+        # or that the proportions do not change too much.
+        return coordinate_transformer.convert_original_ratio_to_resized(
+            crop_width_ratio, crop_height_ratio, 100
+        )
+
+    def init_window_generator(
+        self, predict_mask, resized_width_ratio, resized_height_ratio
+    ):
+        width = RESIZED_DIM[0]
+        height = int(width * resized_height_ratio / resized_width_ratio)
+        if height > RESIZED_DIM[1]:
+            height = RESIZED_DIM[1]
+            width = int(height * resized_width_ratio / resized_height_ratio)
+
+        shape = Shape(width=width, height=height)
+        stride = Stride(
+            horizontal=ScannerFocusTemplate.STRIDE_DIM[0],
+            vertical=ScannerFocusTemplate.STRIDE_DIM[1],
+        )
+        self._window_generator = SlidingWindowScanner(predict_mask, shape, stride)

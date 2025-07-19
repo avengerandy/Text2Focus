@@ -1,18 +1,24 @@
 import argparse
+
 import numpy as np
 
-from src.template import GeneFocusTemplate, SlidingFocusTemplate
-from src.utils import (
-    get_gradio_output_images,
-    run_gradio_server,
+from src.template import (
+    GeneFocusTemplate,
+    NSGA2FocusTemplate,
+    ScannerFocusTemplate,
+    SlidingFocusTemplate,
 )
+from src.utils import get_gradio_output_images, run_gradio_server
 
 STRATEGY_MAP = {
+    "scanner": ScannerFocusTemplate,
+    "sliding": SlidingFocusTemplate,
     "genetic": GeneFocusTemplate,
-    "sliding": SlidingFocusTemplate
+    "nsga2": NSGA2FocusTemplate,
 }
 
 focus = None
+
 
 def process_image(
     image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
@@ -21,11 +27,7 @@ def process_image(
     Main function that called by the gradio.
     """
     crop_result = focus.crop(
-        image,
-        prompts,
-        crop_width_ratio,
-        crop_height_ratio,
-        foreground_object_ratio
+        image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
     )
 
     return get_gradio_output_images(
@@ -36,6 +38,7 @@ def process_image(
         crop_width_ratio,
         crop_height_ratio,
     )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
