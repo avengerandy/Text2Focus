@@ -418,6 +418,20 @@ You can refer to the figure below, which shows the PR (Percentile Rank) of `Gene
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/avengerandy/Text2Focus/blob/master/LICENSE) file for more details.
 
+## 6.1 Third-Party Licenses
+
+This project integrates and depends on the following third-party open-source software components:
+
+- **OWLv2 Base Patch 16 Ensemble**
+  Source: [Hugging Face](https://huggingface.co/google/owlv2-base-patch16-ensemble)
+  License: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+- **PyTorch Pyramid Feature Attention Network for Saliency Detection**
+  Source: [GitHub](https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection)
+  License: [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html)
+
+These components are used as external services via containerized integration, and are not modified directly. Their original licenses apply independently. Users should refer to the respective repositories for full license terms.
+
 ## 7. References
 
 [1] Infold Games. Infinity Nikki Official Website – The Coziest Open-World Game. Infinity Nikki Official Website, n.d., https://infinitynikki.infoldgames.com/en/home.
