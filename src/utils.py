@@ -115,6 +115,9 @@ def get_gradio_output_images(
     """
     cropped_images = []
     solutions = pareto_front.select_representative_solutions(3)
+    while len(solutions) < 3:
+        solutions.append(solutions[-1])
+
     solutions.append(pareto_front.get_point_by_weight([1, 1, 1]))
     for solution in solutions:
         metadata = solution.get_metadata()

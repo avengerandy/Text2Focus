@@ -9,10 +9,7 @@ import csv
 import os
 import time
 
-from src.example_server_gene_window import get_pareto_front as gene_get_pareto_front
-from src.example_server_sliding_processor import (
-    get_pareto_front as sliding_get_pareto_front,
-)
+from src.template import GeneFocusTemplate, SlidingFocusTemplate
 from src.pareto import Solution
 from src.utils import load_image
 
@@ -49,16 +46,20 @@ def process_images_in_folder(
 
         # Measure time for genetic algorithm
         start_time = time.time()
-        pareto_front_gene = gene_get_pareto_front(
+        gene_foucs = GeneFocusTemplate()
+        crop_result = gene_foucs.crop(
             image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
         )
+        pareto_front_gene = crop_result.pareto_front
         gene_time = time.time() - start_time
 
         # Measure time for sliding window method
         start_time = time.time()
-        pareto_front_sliding = sliding_get_pareto_front(
+        slid_foucs = SlidingFocusTemplate()
+        crop_result = slid_foucs.crop(
             image, prompts, crop_width_ratio, crop_height_ratio, foreground_object_ratio
         )
+        pareto_front_sliding = crop_result.pareto_front
         sliding_time = time.time() - start_time
 
         # Get PR values for each dimension
@@ -113,5 +114,10 @@ if __name__ == "__main__":
         "./experiment/dogs",
         "dog",
         "./experiment/experiment_dogs_results.csv",
+    )
+    process_images_in_folder(
+        "./experiment/cats",
+        "cat",
+        "./experiment/experiment_cats_results.csv",
     )
     print("Processing complete.")

@@ -387,9 +387,9 @@ In the algorithm, there are some acceleration tools that you should consider usi
 
 ![crop_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/crop_mode.png)
 
-- **Precise Crop Mode** involves using `SlidingWindowProcessor`, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use `DividedParetoFront` for acceleration. This helps speed up the processing without losing accuracy. You can check `example_server_sliding_processor.py` for more details.
+- **Precise Crop Mode** involves using `SlidingWindowProcessor`, a brute-force method that scans all possible solutions. This results in many potential solutions, so it's recommended to use `DividedParetoFront` for acceleration. This helps speed up the processing without losing accuracy. You can check `SlidingFocusTemplate` in `template.py` for more details.
 
-- **Approximation Crop Mode** uses `GeneWindowGenerator` to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, `ParetoFront` can be used directly without the need for additional acceleration. You can refer to `example_server_gene_window.py` for how this is implemented.
+- **Approximation Crop Mode** uses `GeneWindowGenerator` to generate approximate solutions within a fixed time frame. Since the genetic algorithm produces fewer solutions, `ParetoFront` can be used directly without the need for additional acceleration. You can check `GeneFocusTemplate` in `template.py` for more details.
 
 #### Fill Mode
 
