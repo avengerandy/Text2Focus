@@ -4,7 +4,7 @@ Text2Focus automatically crops images based on textual descriptions, highlightin
 
 ![demo.gif](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/demo.gif)
 
-The test images used in this project were captured from a game called Infinity Nikki \[1\].
+The test images used in this project feature dolls from WITHDOLL as models. \[1\].
 
 ## 1. Introduction and Features
 
@@ -404,7 +404,7 @@ You can refer to the figure below, which shows the PR (Percentile Rank) of `Gene
 
 ![full_mode.png](https://raw.githubusercontent.com/avengerandy/Text2Focus/master/img/full_mode.png)
 
-- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use `SlidingWindowScanner`. Technically, multi-objective optimization is not strictly necessary for this mode, since the goal is inherently geometric. However, to maintain a consistent interface across different modes, the implementation still evaluates three objective dimensions and returns a ParetoFront. You can check `ScannerFocusTemplate` in `template.py` for more details.
+- **Fill Mode** is similar to CSS's `cover`, which stretches the image to cover the entire container while maintaining the aspect ratio. In this case, you can use `SlidingWindowScanner`. Technically, multi-objective optimization is not strictly necessary for this mode, since the goal is inherently geometric. However, to maintain a consistent interface across different modes, the implementation still evaluates three objective dimensions and returns a ParetoFront (4 same images). You can check `ScannerFocusTemplate` in `template.py` for more details.
 
 #### Conclusion
 
@@ -434,18 +434,18 @@ These components are used as external services via containerized integration, an
 
 ## 7. References
 
-[1] Infold Games. Infinity Nikki Official Website – The Coziest Open-World Game. Infinity Nikki Official Website, n.d., https://infinitynikki.infoldgames.com/en/home.
+[1] WITHDOLL. WITHDOLL Official Website. WITHDOLL, https://withdoll.com/index.php.
 
 [2] Zhao, Ting, and Xiangqian Wu. "Pyramid feature attention network for saliency detection." Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. 2019.
 
-[3] Sairajk. PyTorch Pyramid Feature Attention Network for Saliency Detection. GitHub, n.d., https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection.
+[3] Sairajk. PyTorch Pyramid Feature Attention Network for Saliency Detection. GitHub, https://github.com/sairajk/PyTorch-Pyramid-Feature-Attention-Network-for-Saliency-Detection.
 
 [4] Minderer, Matthias, Alexey Gritsenko, and Neil Houlsby. "Scaling open-vocabulary object detection." Advances in Neural Information Processing Systems 36 (2024).
 
-[5] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, n.d., https://huggingface.co/google/owlv2-base-patch16-ensemble.
+[5] Google. OWL-ViT 2 Base Patch 16 Ensemble. Hugging Face, https://huggingface.co/google/owlv2-base-patch16-ensemble.
 
 [6] Nojhan - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=770240
 
-[7] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, n.d., https://github.com/qhgz2013/anime-face-detector.
+[7] Qhgz2013. Anime Face Detector: A Faster-RCNN based anime face detector. GitHub, https://github.com/qhgz2013/anime-face-detector.
 
 [8] Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.

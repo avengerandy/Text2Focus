@@ -151,10 +151,15 @@ def run_gradio_server(process_image: Callable) -> None:
     """
     Create Gradio UI for the process_image function.
     """
-    with gr.Blocks() as demo:
+    css = """
+    #big-textbox textarea {
+        font-size: 32px !important;
+    }
+    """
+    with gr.Blocks(css=css) as demo:
         with gr.Row():
             with gr.Column():
-                prompts_input = gr.Textbox(value=PROMPTS_DEFAULT, label="Prompts")
+                prompts_input = gr.Textbox(value=PROMPTS_DEFAULT, label="Prompts", elem_id="big-textbox")
                 crop_width_ratio_input = gr.Number(
                     value=1.0, label="Crop Width Ratio", interactive=True
                 )
