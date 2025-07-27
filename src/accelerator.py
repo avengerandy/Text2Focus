@@ -401,9 +401,6 @@ class GeneWindowGenerator(IWindowGenerator):
         window_width = int(
             weight1 * parent1.window_width + weight2 * parent2.window_width
         )
-
-        weight1 = random.uniform(0.5, 0.9)
-        weight2 = 1.0 - weight1
         window_height = int(
             weight1 * parent1.window_height + weight2 * parent2.window_height
         )
